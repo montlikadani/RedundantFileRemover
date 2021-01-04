@@ -8,7 +8,7 @@ _This is the first C# project I created in December 2020 in my boredom._
 # Features
 Currently it is only available on Windows.
 
-- Ability to search in the root directory including sub-directories
+- Ability to search in the root directory including sub-directories (optional)
   - During the search operation the program ignores the system files (like program files, system).
 - Option to remove all found empty files and folders
 - Path exceptions when the program does not search for empty files in the specified directories
