@@ -24,6 +24,7 @@ namespace RedundantFileRemover {
         /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent() {
+            this.components = new System.ComponentModel.Container();
             System.Windows.Forms.Label pathToSearch;
             this.browseButton = new System.Windows.Forms.Button();
             this.folderPath = new System.Windows.Forms.TextBox();
@@ -34,14 +35,13 @@ namespace RedundantFileRemover {
             this.removeAll = new System.Windows.Forms.Button();
             this.onlyFoundFiles = new System.Windows.Forms.CheckBox();
             this.searchEmptyFolders = new System.Windows.Forms.CheckBox();
-            this.fileFilters = new System.Windows.Forms.Label();
-            this.browseFiltersButton = new System.Windows.Forms.Button();
-            this.error = new System.Windows.Forms.Label();
             this.removedAmount = new System.Windows.Forms.Label();
             this.searchEmptyFiles = new System.Windows.Forms.CheckBox();
             this.patternFileTypes = new System.Windows.Forms.TextBox();
-            this.filterList = new System.Windows.Forms.ListBox();
-            this.removeFilters = new System.Windows.Forms.Button();
+            this.menuList = new System.Windows.Forms.MainMenu(this.components);
+            this.fileMenu = new System.Windows.Forms.MenuItem();
+            this.exitItem = new System.Windows.Forms.MenuItem();
+            this.settingsMenu = new System.Windows.Forms.MenuItem();
             pathToSearch = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
@@ -152,41 +152,6 @@ namespace RedundantFileRemover {
             this.searchEmptyFolders.UseVisualStyleBackColor = true;
             this.searchEmptyFolders.CheckedChanged += new System.EventHandler(this.searchFiles_CheckedChanged);
             // 
-            // fileFilters
-            // 
-            this.fileFilters.AutoSize = true;
-            this.fileFilters.Location = new System.Drawing.Point(26, 522);
-            this.fileFilters.Name = "fileFilters";
-            this.fileFilters.Size = new System.Drawing.Size(148, 15);
-            this.fileFilters.TabIndex = 14;
-            this.fileFilters.Text = "Add directory exceptions";
-            // 
-            // browseFiltersButton
-            // 
-            this.browseFiltersButton.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.browseFiltersButton.AutoSize = true;
-            this.browseFiltersButton.Location = new System.Drawing.Point(180, 511);
-            this.browseFiltersButton.Name = "browseFiltersButton";
-            this.browseFiltersButton.Size = new System.Drawing.Size(35, 26);
-            this.browseFiltersButton.TabIndex = 15;
-            this.browseFiltersButton.Text = "...";
-            this.browseFiltersButton.TextAlign = System.Drawing.ContentAlignment.TopCenter;
-            this.browseFiltersButton.TextImageRelation = System.Windows.Forms.TextImageRelation.TextAboveImage;
-            this.browseFiltersButton.UseVisualStyleBackColor = true;
-            this.browseFiltersButton.Click += new System.EventHandler(this.browseFiltersButton_Click);
-            // 
-            // error
-            // 
-            this.error.AutoSize = true;
-            this.error.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
-            this.error.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
-            this.error.ForeColor = System.Drawing.SystemColors.Control;
-            this.error.Location = new System.Drawing.Point(202, 519);
-            this.error.Name = "error";
-            this.error.Size = new System.Drawing.Size(0, 16);
-            this.error.TabIndex = 17;
-            this.error.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
             // removedAmount
             // 
             this.removedAmount.AutoSize = true;
@@ -215,43 +180,41 @@ namespace RedundantFileRemover {
             this.patternFileTypes.Size = new System.Drawing.Size(100, 23);
             this.patternFileTypes.TabIndex = 22;
             this.patternFileTypes.Text = ".ini, .log, .txt";
+            this.patternFileTypes.TextChanged += new System.EventHandler(this.patternFileTypes_TextChanged);
             // 
-            // filterList
+            // menuList
             // 
-            this.filterList.FormattingEnabled = true;
-            this.filterList.HorizontalScrollbar = true;
-            this.filterList.ItemHeight = 15;
-            this.filterList.Location = new System.Drawing.Point(29, 541);
-            this.filterList.Name = "filterList";
-            this.filterList.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
-            this.filterList.Size = new System.Drawing.Size(422, 94);
-            this.filterList.TabIndex = 23;
-            this.filterList.MouseDown += new System.Windows.Forms.MouseEventHandler(this.filterList_MouseDown);
+            this.menuList.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
+            this.fileMenu,
+            this.settingsMenu});
             // 
-            // removeFilters
+            // fileMenu
             // 
-            this.removeFilters.Enabled = false;
-            this.removeFilters.Location = new System.Drawing.Point(29, 642);
-            this.removeFilters.Name = "removeFilters";
-            this.removeFilters.Size = new System.Drawing.Size(75, 23);
-            this.removeFilters.TabIndex = 24;
-            this.removeFilters.Text = "Remove";
-            this.removeFilters.UseVisualStyleBackColor = true;
-            this.removeFilters.Click += new System.EventHandler(this.removeFilters_Click);
+            this.fileMenu.Index = 0;
+            this.fileMenu.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
+            this.exitItem});
+            this.fileMenu.Text = "File";
+            // 
+            // exitItem
+            // 
+            this.exitItem.Index = 0;
+            this.exitItem.Text = "Exit";
+            this.exitItem.Click += new System.EventHandler(this.exitItem_Click);
+            // 
+            // settingsMenu
+            // 
+            this.settingsMenu.Index = 1;
+            this.settingsMenu.Text = "Settings";
+            this.settingsMenu.Click += new System.EventHandler(this.settingsMenu_Click);
             // 
             // RedundantFileRemover
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1050, 704);
-            this.Controls.Add(this.removeFilters);
-            this.Controls.Add(this.filterList);
+            this.ClientSize = new System.Drawing.Size(1050, 588);
             this.Controls.Add(this.patternFileTypes);
             this.Controls.Add(this.searchEmptyFiles);
             this.Controls.Add(this.removedAmount);
-            this.Controls.Add(this.error);
-            this.Controls.Add(this.browseFiltersButton);
-            this.Controls.Add(this.fileFilters);
             this.Controls.Add(this.searchEmptyFolders);
             this.Controls.Add(this.onlyFoundFiles);
             this.Controls.Add(this.removeAll);
@@ -265,6 +228,7 @@ namespace RedundantFileRemover {
             this.Font = new System.Drawing.Font("Microsoft JhengHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
+            this.Menu = this.menuList;
             this.Name = "RedundantFileRemover";
             this.ShowIcon = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
@@ -277,7 +241,7 @@ namespace RedundantFileRemover {
         #endregion
 
         private System.Windows.Forms.Button browseButton;
-        private System.Windows.Forms.TextBox folderPath;
+        public System.Windows.Forms.TextBox folderPath;
         private System.Windows.Forms.Button searchButton;
         private System.Windows.Forms.TextBox logs;
         private System.Windows.Forms.Button stopTask;
@@ -285,14 +249,13 @@ namespace RedundantFileRemover {
         private System.Windows.Forms.Button removeAll;
         private System.Windows.Forms.CheckBox onlyFoundFiles;
         private System.Windows.Forms.CheckBox searchEmptyFolders;
-        private System.Windows.Forms.Label fileFilters;
-        private System.Windows.Forms.Button browseFiltersButton;
-        private System.Windows.Forms.Label error;
         private System.Windows.Forms.Label removedAmount;
         private System.Windows.Forms.CheckBox searchEmptyFiles;
         private System.Windows.Forms.TextBox patternFileTypes;
-        private System.Windows.Forms.ListBox filterList;
-        private System.Windows.Forms.Button removeFilters;
+        private System.Windows.Forms.MainMenu menuList;
+        private System.Windows.Forms.MenuItem fileMenu;
+        private System.Windows.Forms.MenuItem settingsMenu;
+        private System.Windows.Forms.MenuItem exitItem;
     }
 }
 

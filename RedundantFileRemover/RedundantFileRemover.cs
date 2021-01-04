@@ -10,13 +10,42 @@ namespace RedundantFileRemover {
 
         private bool paused = false;
 
+        private readonly SettingsForm settings = new SettingsForm();
+
         private readonly List<DirectoryInfo> emptyDirectories = new List<DirectoryInfo>();
         private readonly List<FileInfo> emptyFilesList = new List<FileInfo>();
-        private readonly List<string> ignoredDirectories = new List<string>();
 
         public RedundantFileRemover() {
             InitializeComponent();
-            folderPath.Text = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+            FormClosing += new FormClosingEventHandler(Form_Closing);
+            Application.ApplicationExit += new EventHandler(Form_Exit);
+
+            folderPath.Text = CachedData.FolderPath;
+            onlyFoundFiles.Checked = CachedData.PrintOnlyFoundFiles;
+            searchEmptyFolders.Checked = CachedData.SearchEmptyFolders;
+            searchEmptyFiles.Checked = CachedData.SearchEmptyFiles;
+            patternFileTypes.Text = CachedData.PatternFileTypes;
+
+            if ((!searchEmptyFiles.Checked || patternFileTypes.Text == "") && !searchEmptyFolders.Checked) {
+                searchButton.Enabled = false;
+            }
+        }
+
+        void Form_Closing(object sender, FormClosingEventArgs e) {
+            CachedData.PrintOnlyFoundFiles = onlyFoundFiles.Checked;
+            CachedData.SearchEmptyFolders = searchEmptyFolders.Checked;
+            CachedData.SearchEmptyFiles = searchEmptyFiles.Checked;
+            CachedData.PatternFileTypes = patternFileTypes.Text;
+            CachedData.FolderPath = folderPath.Text;
+        }
+
+        void Form_Exit(object sender, EventArgs e) {
+            Properties.Settings.Default.PrintOnlyFoundFiles = CachedData.PrintOnlyFoundFiles;
+            Properties.Settings.Default.SearchEmptyFolders = CachedData.SearchEmptyFolders;
+            Properties.Settings.Default.SearchEmptyFiles = CachedData.SearchEmptyFiles;
+            Properties.Settings.Default.PatternFileTypes = CachedData.PatternFileTypes;
+            Properties.Settings.Default.FolderPath = CachedData.FolderPath;
         }
 
         private void browseButton_Click(object sender, EventArgs e) {
@@ -41,7 +70,6 @@ namespace RedundantFileRemover {
 
             paused = false;
             searchButton.Enabled = false;
-            browseFiltersButton.Enabled = false;
             browseButton.Enabled = false;
             removeAll.Enabled = false;
             stopTask.Enabled = true;
@@ -69,7 +97,7 @@ namespace RedundantFileRemover {
                         break;
                     }
 
-                    if (!FileUtils.IsFileHasDefaultAttribute(fileInfo) || IsDirectoryInIgnoredList(fileInfo.FullName)) {
+                    if (!FileUtils.IsFileHasDefaultAttribute(fileInfo) || settings.IsDirectoryInIgnoredList(fileInfo.FullName)) {
                         continue;
                     }
 
@@ -98,7 +126,7 @@ namespace RedundantFileRemover {
                         break;
                     }
 
-                    if (!FileUtils.IsFileHasDefaultAttribute(dInfo) || IsDirectoryInIgnoredList(dInfo.FullName)) {
+                    if (!FileUtils.IsFileHasDefaultAttribute(dInfo) || settings.IsDirectoryInIgnoredList(dInfo.FullName)) {
                         continue;
                     }
 
@@ -143,7 +171,6 @@ namespace RedundantFileRemover {
             }
 
             searchButton.Enabled = true;
-            browseFiltersButton.Enabled = true;
             browseButton.Enabled = true;
             onlyFoundFiles.Enabled = true;
             searchEmptyFolders.Enabled = true;
@@ -197,98 +224,25 @@ namespace RedundantFileRemover {
             removedAmount.Text = "";
         }
 
-        private void browseFiltersButton_Click(object sender, EventArgs e) {
-            var dialog = new FolderBrowserDialog();
-
-            if (dialog.ShowDialog() == DialogResult.OK) {
-                if (dialog.SelectedPath == folderPath.Text) {
-                    error.Text = "Error: The path can't be the same with the selected folder.";
-                    return;
-                }
-
-                error.Text = "";
-
-                filterList.Items.Add(dialog.SelectedPath);
-                ignoredDirectories.Add(dialog.SelectedPath);
-                removeFilters.Enabled = true;
-            }
-        }
-
         private async Task DoAsync(int ms) {
             await Task.Delay(ms);
         }
 
         private void searchFiles_CheckedChanged(object sender, EventArgs e) {
             patternFileTypes.Visible = searchEmptyFiles.Checked;
-            searchButton.Enabled = searchEmptyFolders.Checked || searchEmptyFiles.Checked;
+            searchButton.Enabled = searchEmptyFolders.Checked || (searchEmptyFiles.Checked && patternFileTypes.Text != "");
         }
 
-        private void filterList_MouseDown(object sender, MouseEventArgs e) {
-            if (filterList.SelectedItems.Count == 0 || e.Button != MouseButtons.Right) {
-                return;
-            }
-
-            ContextMenuStrip cms = new ContextMenuStrip();
-            cms.Click += OnFilterListClicked;
-
-            cms.Items.Add("Remove from list");
-
-            if (sender is Control control) {
-                cms.Show(this, new System.Drawing.Point(e.X + control.Left, e.Y + control.Top));
-            }
-
-            filterList.ContextMenuStrip = cms;
+        private void exitItem_Click(object sender, EventArgs e) {
+            Application.Exit();
         }
 
-        private void OnFilterListClicked(object sender, EventArgs e) {
-            if (e is MouseEventArgs mouse && mouse.Button == MouseButtons.Left && filterList.SelectedItems.Count > 0) {
-                object selectedItem = filterList.SelectedItem;
-                filterList.Items.Remove(selectedItem);
-                ignoredDirectories.Remove(selectedItem.ToString());
-
-                if (filterList.Items.Count == 0) {
-                    removeFilters.Enabled = false;
-                }
-
-                if (sender is ContextMenuStrip contextMenuStrip) {
-                    contextMenuStrip.Dispose();
-                }
-
-                filterList.SelectedItems.Clear();
-            }
+        private void settingsMenu_Click(object sender, EventArgs e) {
+            settings.ShowDialog();
         }
 
-        private void removeFilters_Click(object sender, EventArgs e) {
-            if (filterList.SelectedItems.Count == 0) {
-                filterList.Items.Clear();
-                ignoredDirectories.Clear();
-            } else {
-                List<string> list = new List<string>();
-                foreach (string r in filterList.SelectedItems) {
-                    list.Add(r);
-                }
-
-                foreach (string item in list) {
-                    filterList.Items.Remove(item);
-                    ignoredDirectories.Remove(item);
-                }
-
-                filterList.SelectedItems.Clear();
-            }
-
-            if (filterList.Items.Count == 0) {
-                removeFilters.Enabled = false;
-            }
-        }
-
-        public bool IsDirectoryInIgnoredList(string dir) {
-            foreach (string ign in ignoredDirectories) {
-                if (ign != "" && dir.Contains(ign)) {
-                    return true;
-                }
-            }
-
-            return false;
+        private void patternFileTypes_TextChanged(object sender, EventArgs e) {
+            searchButton.Enabled = searchEmptyFiles.Checked && patternFileTypes.Text != "";
         }
     }
 }

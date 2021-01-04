@@ -22,5 +22,88 @@ namespace RedundantFileRemover.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool SearchInSubDirs {
+            get {
+                return ((bool)(this["SearchInSubDirs"]));
+            }
+            set {
+                this["SearchInSubDirs"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public global::System.Collections.Generic.List<System.String> IgnoredDirectories {
+            get {
+                return ((global::System.Collections.Generic.List<System.String>)(this["IgnoredDirectories"]));
+            }
+            set {
+                this["IgnoredDirectories"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string FolderPath {
+            get {
+                return ((string)(this["FolderPath"]));
+            }
+            set {
+                this["FolderPath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool PrintOnlyFoundFiles {
+            get {
+                return ((bool)(this["PrintOnlyFoundFiles"]));
+            }
+            set {
+                this["PrintOnlyFoundFiles"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool SearchEmptyFolders {
+            get {
+                return ((bool)(this["SearchEmptyFolders"]));
+            }
+            set {
+                this["SearchEmptyFolders"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool SearchEmptyFiles {
+            get {
+                return ((bool)(this["SearchEmptyFiles"]));
+            }
+            set {
+                this["SearchEmptyFiles"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute(".ini, .log, .txt")]
+        public string PatternFileTypes {
+            get {
+                return ((string)(this["PatternFileTypes"]));
+            }
+            set {
+                this["PatternFileTypes"] = value;
+            }
+        }
     }
 }

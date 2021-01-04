@@ -36,7 +36,10 @@ namespace RedundantFileRemover {
                         try {
                             var dirInfo = dirs.ElementAt(i);
                             accessibleFiles.Add(dirInfo);
-                            CollectAccessibleFiles(dirInfo, sp, isDir);
+
+                            if (CachedData.SearchInSubDirectories) {
+                                CollectAccessibleFiles(dirInfo, sp, isDir);
+                            }
                         } catch (Exception) {
                         }
                     }
@@ -60,7 +63,9 @@ namespace RedundantFileRemover {
                             }
                         }
 
-                        CollectAccessibleFiles(directories[i], sp, isDir);
+                        if (CachedData.SearchInSubDirectories) {
+                            CollectAccessibleFiles(directories[i], sp, isDir);
+                        }
                     } catch (Exception) {
                     }
                 }
