@@ -23,5 +23,11 @@
     <Setting Name="PatternFileTypes" Type="System.String" Scope="User">
       <Value Profile="(Default)">.ini, .log, .txt</Value>
     </Setting>
+    <Setting Name="ErrorLogging" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="AlwaysClearLogs" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

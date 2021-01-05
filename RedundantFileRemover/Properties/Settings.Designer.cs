@@ -105,5 +105,29 @@ namespace RedundantFileRemover.Properties {
                 this["PatternFileTypes"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ErrorLogging {
+            get {
+                return ((bool)(this["ErrorLogging"]));
+            }
+            set {
+                this["ErrorLogging"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool AlwaysClearLogs {
+            get {
+                return ((bool)(this["AlwaysClearLogs"]));
+            }
+            set {
+                this["AlwaysClearLogs"] = value;
+            }
+        }
     }
 }

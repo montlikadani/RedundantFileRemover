@@ -9,12 +9,10 @@ namespace RedundantFileRemover {
             foreach (char c in str) {
                 bool allow = false;
 
-                if (excepts.Length != 0) {
-                    foreach (char ex in excepts) {
-                        if (ex == c) {
-                            allow = true;
-                            break;
-                        }
+                foreach (char ex in excepts) {
+                    if (ex == c) {
+                        allow = true;
+                        break;
                     }
                 }
 

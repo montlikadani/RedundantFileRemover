@@ -42,6 +42,7 @@ namespace RedundantFileRemover {
             this.fileMenu = new System.Windows.Forms.MenuItem();
             this.exitItem = new System.Windows.Forms.MenuItem();
             this.settingsMenu = new System.Windows.Forms.MenuItem();
+            this.showErrors = new System.Windows.Forms.Button();
             pathToSearch = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
@@ -207,11 +208,23 @@ namespace RedundantFileRemover {
             this.settingsMenu.Text = "Settings";
             this.settingsMenu.Click += new System.EventHandler(this.settingsMenu_Click);
             // 
+            // showErrors
+            // 
+            this.showErrors.Enabled = false;
+            this.showErrors.Location = new System.Drawing.Point(918, 223);
+            this.showErrors.Name = "showErrors";
+            this.showErrors.Size = new System.Drawing.Size(104, 30);
+            this.showErrors.TabIndex = 23;
+            this.showErrors.Text = "Show errors";
+            this.showErrors.UseVisualStyleBackColor = true;
+            this.showErrors.Click += new System.EventHandler(this.showErrors_Click);
+            // 
             // RedundantFileRemover
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1050, 588);
+            this.Controls.Add(this.showErrors);
             this.Controls.Add(this.patternFileTypes);
             this.Controls.Add(this.searchEmptyFiles);
             this.Controls.Add(this.removedAmount);
@@ -256,6 +269,7 @@ namespace RedundantFileRemover {
         private System.Windows.Forms.MenuItem fileMenu;
         private System.Windows.Forms.MenuItem settingsMenu;
         private System.Windows.Forms.MenuItem exitItem;
+        public System.Windows.Forms.Button showErrors;
     }
 }
 

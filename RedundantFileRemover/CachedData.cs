@@ -22,5 +22,9 @@ namespace RedundantFileRemover {
 
         public static List<string> IgnoredDirectories { get; } = d.IgnoredDirectories ?? new List<string>();
 
+        public static bool ErrorLogging { get; set; } = d.ErrorLogging;
+
+        public static bool AlwaysClearLogs { get; set; } = d.AlwaysClearLogs;
+
     }
 }

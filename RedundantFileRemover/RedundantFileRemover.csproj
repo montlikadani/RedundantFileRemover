@@ -69,6 +69,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CachedData.cs" />
+    <Compile Include="ErrorViewer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ErrorViewer.Designer.cs">
+      <DependentUpon>ErrorViewer.cs</DependentUpon>
+    </Compile>
     <Compile Include="FileUtils.cs" />
     <Compile Include="RedundantFileRemover.cs">
       <SubType>Form</SubType>
@@ -86,6 +92,9 @@
       <DependentUpon>SettingsForm.cs</DependentUpon>
     </Compile>
     <Compile Include="StringUtils.cs" />
+    <EmbeddedResource Include="ErrorViewer.resx">
+      <DependentUpon>ErrorViewer.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="RedundantFileRemover.resx">
       <DependentUpon>RedundantFileRemover.cs</DependentUpon>
     </EmbeddedResource>

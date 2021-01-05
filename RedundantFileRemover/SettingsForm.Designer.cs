@@ -30,12 +30,15 @@ namespace RedundantFileRemover {
             this.browseFiltersButton = new System.Windows.Forms.Button();
             this.fileFilters = new System.Windows.Forms.Label();
             this.searchInSubDirs = new System.Windows.Forms.CheckBox();
+            this.errorLoggingLabel = new System.Windows.Forms.Label();
+            this.errorLogging = new System.Windows.Forms.CheckBox();
+            this.alwaysClearLogs = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // removeFilters
             // 
             this.removeFilters.Enabled = false;
-            this.removeFilters.Location = new System.Drawing.Point(14, 251);
+            this.removeFilters.Location = new System.Drawing.Point(14, 338);
             this.removeFilters.Name = "removeFilters";
             this.removeFilters.Size = new System.Drawing.Size(87, 29);
             this.removeFilters.TabIndex = 29;
@@ -48,7 +51,7 @@ namespace RedundantFileRemover {
             this.filterList.FormattingEnabled = true;
             this.filterList.HorizontalScrollbar = true;
             this.filterList.ItemHeight = 16;
-            this.filterList.Location = new System.Drawing.Point(14, 143);
+            this.filterList.Location = new System.Drawing.Point(14, 232);
             this.filterList.Name = "filterList";
             this.filterList.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.filterList.Size = new System.Drawing.Size(492, 100);
@@ -61,7 +64,7 @@ namespace RedundantFileRemover {
             this.error.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
             this.error.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.error.ForeColor = System.Drawing.SystemColors.Control;
-            this.error.Location = new System.Drawing.Point(212, 118);
+            this.error.Location = new System.Drawing.Point(214, 212);
             this.error.Name = "error";
             this.error.Size = new System.Drawing.Size(0, 16);
             this.error.TabIndex = 27;
@@ -71,7 +74,7 @@ namespace RedundantFileRemover {
             // 
             this.browseFiltersButton.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.browseFiltersButton.AutoSize = true;
-            this.browseFiltersButton.Location = new System.Drawing.Point(165, 111);
+            this.browseFiltersButton.Location = new System.Drawing.Point(167, 205);
             this.browseFiltersButton.Name = "browseFiltersButton";
             this.browseFiltersButton.Size = new System.Drawing.Size(41, 26);
             this.browseFiltersButton.TabIndex = 26;
@@ -84,7 +87,7 @@ namespace RedundantFileRemover {
             // fileFilters
             // 
             this.fileFilters.AutoSize = true;
-            this.fileFilters.Location = new System.Drawing.Point(10, 119);
+            this.fileFilters.Location = new System.Drawing.Point(12, 213);
             this.fileFilters.Name = "fileFilters";
             this.fileFilters.Size = new System.Drawing.Size(149, 16);
             this.fileFilters.TabIndex = 25;
@@ -102,11 +105,46 @@ namespace RedundantFileRemover {
             this.searchInSubDirs.Text = "Search in sub-directories";
             this.searchInSubDirs.UseVisualStyleBackColor = true;
             // 
+            // errorLoggingLabel
+            // 
+            this.errorLoggingLabel.AutoSize = true;
+            this.errorLoggingLabel.Location = new System.Drawing.Point(11, 38);
+            this.errorLoggingLabel.Name = "errorLoggingLabel";
+            this.errorLoggingLabel.Size = new System.Drawing.Size(83, 16);
+            this.errorLoggingLabel.TabIndex = 31;
+            this.errorLoggingLabel.Text = "Error logging";
+            // 
+            // errorLogging
+            // 
+            this.errorLogging.AutoSize = true;
+            this.errorLogging.Checked = true;
+            this.errorLogging.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.errorLogging.Location = new System.Drawing.Point(25, 58);
+            this.errorLogging.Name = "errorLogging";
+            this.errorLogging.Size = new System.Drawing.Size(74, 20);
+            this.errorLogging.TabIndex = 32;
+            this.errorLogging.Text = "Enabled";
+            this.errorLogging.UseVisualStyleBackColor = true;
+            this.errorLogging.CheckedChanged += new System.EventHandler(this.errorLoggingEnabled_CheckedChanged);
+            // 
+            // alwaysClearLogs
+            // 
+            this.alwaysClearLogs.AutoSize = true;
+            this.alwaysClearLogs.Location = new System.Drawing.Point(25, 85);
+            this.alwaysClearLogs.Name = "alwaysClearLogs";
+            this.alwaysClearLogs.Size = new System.Drawing.Size(261, 20);
+            this.alwaysClearLogs.TabIndex = 33;
+            this.alwaysClearLogs.Text = "Always clear logs before search operation";
+            this.alwaysClearLogs.UseVisualStyleBackColor = true;
+            // 
             // SettingsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(629, 382);
+            this.Controls.Add(this.alwaysClearLogs);
+            this.Controls.Add(this.errorLogging);
+            this.Controls.Add(this.errorLoggingLabel);
             this.Controls.Add(this.searchInSubDirs);
             this.Controls.Add(this.removeFilters);
             this.Controls.Add(this.filterList);
@@ -114,6 +152,7 @@ namespace RedundantFileRemover {
             this.Controls.Add(this.browseFiltersButton);
             this.Controls.Add(this.fileFilters);
             this.Font = new System.Drawing.Font("Microsoft JhengHei", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.Name = "SettingsForm";
             this.ShowIcon = false;
@@ -133,5 +172,8 @@ namespace RedundantFileRemover {
         private System.Windows.Forms.Button browseFiltersButton;
         private System.Windows.Forms.Label fileFilters;
         private System.Windows.Forms.CheckBox searchInSubDirs;
+        private System.Windows.Forms.Label errorLoggingLabel;
+        public System.Windows.Forms.CheckBox alwaysClearLogs;
+        private System.Windows.Forms.CheckBox errorLogging;
     }
 }

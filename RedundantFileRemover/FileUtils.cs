@@ -8,8 +8,8 @@ namespace RedundantFileRemover {
 
         private static readonly List<FileSystemInfo> accessibleFiles = new List<FileSystemInfo>();
 
-        public static bool IsFileHasDefaultAttribute(FileSystemInfo fileSystemInfo) {
-            return fileSystemInfo.Attributes == FileAttributes.Directory || fileSystemInfo.Attributes == FileAttributes.Archive;
+        public static bool IsFileNotHidden(FileSystemInfo fileSystemInfo) {
+            return fileSystemInfo.Attributes != FileAttributes.Hidden;
         }
 
         public static List<FileSystemInfo> GetFiles(DirectoryInfo directoryInfo, string searchPattern, bool isDir) {
@@ -27,48 +27,54 @@ namespace RedundantFileRemover {
             return accessibleFiles;
         }
 
-        // TODO make this async
         private static void CollectAccessibleFiles(DirectoryInfo directoryInfo, string sp, bool isDir) {
-            if (isDir) {
-                DirectoryInfo[] dirs = directoryInfo.GetDirectories();
-                for (int i = 0; i < dirs.Length; i++) {
-                    if (dirs[i].Exists && IsNotSpecialFolder(dirs[i].Name)) {
-                        try {
-                            var dirInfo = dirs.ElementAt(i);
-                            accessibleFiles.Add(dirInfo);
+            try {
+                var directories = directoryInfo.EnumerateDirectories().ToArray();
 
-                            if (CachedData.SearchInSubDirectories) {
-                                CollectAccessibleFiles(dirInfo, sp, isDir);
+                if (isDir) {
+                    for (int i = 0; i < directories.Length; i++) {
+                        if (directories[i].Exists && IsNotSpecialFolder(directories[i].Name) && IsFileNotHidden(directories[i])) {
+                            try {
+                                var dirInfo = directories.ElementAt(i);
+                                accessibleFiles.Add(dirInfo);
+
+                                if (CachedData.SearchInSubDirectories) {
+                                    CollectAccessibleFiles(dirInfo, sp, isDir);
+                                }
+                            } catch (Exception ex) {
+                                RedundantFileRemover.LogException(ex.Message + " " + ex.StackTrace);
                             }
-                        } catch (Exception) {
                         }
                     }
-                }
-            } else {
-                var directories = directoryInfo.GetDirectories();
-                for (int i = 0; i < directories.Length; i++) {
-                    try {
-                        if (!directories.ElementAt(i).Exists) {
-                            continue;
-                        }
+                } else {
+                    for (int i = 0; i < directories.Length; i++) {
+                        try {
+                            if (!directories.ElementAt(i).Exists) {
+                                continue;
+                            }
 
-                        if (IsNotSpecialFolder(directories[i].Name)) {
-                            foreach (FileInfo fileInfo in directories[i].GetFiles('*' + sp)) {
-                                try {
-                                    if (fileInfo.Exists) {
-                                        accessibleFiles.Add(fileInfo);
+                            if (IsNotSpecialFolder(directories[i].Name) && IsFileNotHidden(directories[i])) {
+                                foreach (FileInfo fileInfo in directories[i].GetFiles('*' + sp)) {
+                                    try {
+                                        if (fileInfo.Exists && IsFileNotHidden(fileInfo)) {
+                                            accessibleFiles.Add(fileInfo);
+                                        }
+                                    } catch (Exception exe) {
+                                        RedundantFileRemover.LogException(exe.Message + " " + exe.StackTrace);
                                     }
-                                } catch (Exception) {
                                 }
                             }
-                        }
 
-                        if (CachedData.SearchInSubDirectories) {
-                            CollectAccessibleFiles(directories[i], sp, isDir);
+                            if (CachedData.SearchInSubDirectories) {
+                                CollectAccessibleFiles(directories[i], sp, isDir);
+                            }
+                        } catch (Exception ex) {
+                            RedundantFileRemover.LogException(ex.Message + " " + ex.StackTrace);
                         }
-                    } catch (Exception) {
                     }
                 }
+            } catch (Exception ex) {
+                RedundantFileRemover.LogException(ex.StackTrace + " " + ex.Message);
             }
         }
 
@@ -76,9 +82,8 @@ namespace RedundantFileRemover {
             dirName = dirName.Replace(" ", "");
 
             return !dirName.Contains(Environment.SpecialFolder.System.ToString())
-                && !dirName.Contains(Environment.SpecialFolder.ProgramFiles.ToString())
-                && !dirName.Contains(Environment.SpecialFolder.ProgramFilesX86.ToString())
-                && !dirName.Contains(Environment.SpecialFolder.Windows.ToString());
+                && !dirName.Contains(Environment.SpecialFolder.Windows.ToString())
+                && !dirName.Equals("PerfLogs");
         }
     }
 }

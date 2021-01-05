@@ -15,6 +15,8 @@ namespace RedundantFileRemover {
             Application.ApplicationExit += new EventHandler(SettingsForm_FormExit);
 
             searchInSubDirs.Checked = CachedData.SearchInSubDirectories;
+            errorLogging.Checked = CachedData.ErrorLogging;
+            alwaysClearLogs.Checked = CachedData.AlwaysClearLogs;
 
             CachedData.IgnoredDirectories.ForEach(a => filterList.Items.Add(a));
 
@@ -29,11 +31,20 @@ namespace RedundantFileRemover {
 
         void SettingsForm_FormClosing(object sender, FormClosingEventArgs e) {
             CachedData.SearchInSubDirectories = searchInSubDirs.Checked;
+            CachedData.ErrorLogging = errorLogging.Checked;
+            CachedData.AlwaysClearLogs = alwaysClearLogs.Checked;
+
+            // Hiding ShowErrors button in main window
+            if (!errorLogging.Checked && Owner is RedundantFileRemover rfr) {
+                rfr.showErrors.Enabled = false;
+            }
         }
 
         void SettingsForm_FormExit(object sender, EventArgs e) {
+            Properties.Settings.Default.ErrorLogging = CachedData.ErrorLogging;
             Properties.Settings.Default.SearchInSubDirs = CachedData.SearchInSubDirectories;
             Properties.Settings.Default.IgnoredDirectories = CachedData.IgnoredDirectories;
+            Properties.Settings.Default.AlwaysClearLogs = CachedData.AlwaysClearLogs;
         }
 
         public bool IsDirectoryInIgnoredList(string dir) {
@@ -55,7 +66,7 @@ namespace RedundantFileRemover {
                     return;
                 }
 
-                if (Parent is RedundantFileRemover main && selectedPath == main.folderPath.Text) {
+                if (Owner is RedundantFileRemover main && selectedPath == main.folderPath.Text) {
                     error.Text = "Error: The path can't be the same with the selected folder.";
                     return;
                 }
@@ -100,6 +111,7 @@ namespace RedundantFileRemover {
             cms.Click += OnFilterListClicked;
 
             cms.Items.Add("Remove from list");
+            cms.Items.Add("Open in file explorer");
 
             if (sender is Control control) {
                 cms.Show(this, new Point(e.X + control.Left, e.Y + control.Top));
@@ -110,20 +122,39 @@ namespace RedundantFileRemover {
 
         private void OnFilterListClicked(object sender, EventArgs e) {
             if (e is MouseEventArgs mouse && mouse.Button == MouseButtons.Left && filterList.SelectedItems.Count > 0) {
+                ContextMenuStrip cms = sender is ContextMenuStrip ? sender as ContextMenuStrip : null;
                 object selectedItem = filterList.SelectedItem;
+
                 filterList.Items.Remove(selectedItem);
-                CachedData.IgnoredDirectories.Remove(selectedItem.ToString());
+
+                var toolStripItem = cms.GetItemAt(mouse.Location);
+                if (toolStripItem != null) {
+                    if (toolStripItem.Text == "Open in file explorer") {
+                        try {
+                            System.Diagnostics.Process.Start("explorer.exe", selectedItem.ToString());
+                        } catch (Exception ex) {
+                            RedundantFileRemover.LogException(ex.Message + " " + ex.StackTrace);
+                            MessageBox.Show("File not found", "The file to open does not exist: " + ex.Message, MessageBoxButtons.OK);
+                        }
+                    } else if (toolStripItem.Text == "Remove from list") {
+                        CachedData.IgnoredDirectories.Remove(selectedItem.ToString());
+                    }
+                }
 
                 if (filterList.Items.Count == 0) {
                     removeFilters.Enabled = false;
                 }
 
-                if (sender is ContextMenuStrip contextMenuStrip) {
-                    contextMenuStrip.Dispose();
+                if (cms != null) {
+                    cms.Close();
                 }
 
                 filterList.SelectedItems.Clear();
             }
+        }
+
+        private void errorLoggingEnabled_CheckedChanged(object sender, EventArgs e) {
+            alwaysClearLogs.Visible = errorLogging.Checked;
         }
     }
 }
