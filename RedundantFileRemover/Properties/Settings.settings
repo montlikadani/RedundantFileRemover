@@ -1,33 +1,5 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
-<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="RedundantFileRemover.Properties" GeneratedClassName="Settings">
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)">
   <Profiles />
-  <Settings>
-    <Setting Name="SearchInSubDirs" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
-    </Setting>
-    <Setting Name="IgnoredDirectories" Type="System.Collections.Generic.List&lt;System.String&gt;" Scope="User">
-      <Value Profile="(Default)" />
-    </Setting>
-    <Setting Name="FolderPath" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
-    </Setting>
-    <Setting Name="PrintOnlyFoundFiles" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
-    </Setting>
-    <Setting Name="SearchEmptyFolders" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
-    </Setting>
-    <Setting Name="SearchEmptyFiles" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
-    </Setting>
-    <Setting Name="PatternFileTypes" Type="System.String" Scope="User">
-      <Value Profile="(Default)">.ini, .log, .txt</Value>
-    </Setting>
-    <Setting Name="ErrorLogging" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
-    </Setting>
-    <Setting Name="AlwaysClearLogs" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
-    </Setting>
-  </Settings>
+  <Settings />
 </SettingsFile>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RedundantFileRemover.UserSettingsData;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -10,29 +11,25 @@ namespace RedundantFileRemover {
         public SettingsForm() {
             InitializeComponent();
 
-            Properties.Settings.Default.PropertyChanged += new PropertyChangedEventHandler(Default_PropertyChanged);
             FormClosing += new FormClosingEventHandler(SettingsForm_FormClosing);
             Application.ApplicationExit += new EventHandler(SettingsForm_FormExit);
 
-            searchInSubDirs.Checked = CachedData.SearchInSubDirectories;
-            errorLogging.Checked = CachedData.ErrorLogging;
-            alwaysClearLogs.Checked = CachedData.AlwaysClearLogs;
+            #region Load saved data into memory
+            searchInSubDirs.Checked = FileDataReader.ProgramSettings.SettingsWindow.SearchInSubDirectories;
+            errorLogging.Checked = FileDataReader.ProgramSettings.SettingsWindow.ErrorLogging;
+            alwaysClearLogs.Checked = FileDataReader.ProgramSettings.SettingsWindow.AlwaysClearLogs;
+            moveFilesToBin.Checked = FileDataReader.ProgramSettings.SettingsWindow.MoveFileToRecycleBin;
 
-            CachedData.IgnoredDirectories.ForEach(a => filterList.Items.Add(a));
+            FileDataReader.ProgramSettings.SettingsWindow.IgnoredDirectories.ForEach(a => filterList.Items.Add(a));
+            #endregion
 
             if (filterList.Items.Count > 0) {
                 removeFilters.Enabled = true;
             }
         }
 
-        void Default_PropertyChanged(object sender, PropertyChangedEventArgs e) {
-            Properties.Settings.Default.Save();
-        }
-
         void SettingsForm_FormClosing(object sender, FormClosingEventArgs e) {
-            CachedData.SearchInSubDirectories = searchInSubDirs.Checked;
-            CachedData.ErrorLogging = errorLogging.Checked;
-            CachedData.AlwaysClearLogs = alwaysClearLogs.Checked;
+            SettingsForm_FormExit(sender, e);
 
             // Hiding ShowErrors button in main window
             if (!errorLogging.Checked && Owner is RedundantFileRemover rfr) {
@@ -41,14 +38,17 @@ namespace RedundantFileRemover {
         }
 
         void SettingsForm_FormExit(object sender, EventArgs e) {
-            Properties.Settings.Default.ErrorLogging = CachedData.ErrorLogging;
-            Properties.Settings.Default.SearchInSubDirs = CachedData.SearchInSubDirectories;
-            Properties.Settings.Default.IgnoredDirectories = CachedData.IgnoredDirectories;
-            Properties.Settings.Default.AlwaysClearLogs = CachedData.AlwaysClearLogs;
+            #region save cached data
+            FileDataReader.ProgramSettings.SettingsWindow.ErrorLogging = errorLogging.Checked;
+            FileDataReader.ProgramSettings.SettingsWindow.SearchInSubDirectories = searchInSubDirs.Checked;
+            FileDataReader.ProgramSettings.SettingsWindow.IgnoredDirectories.AddRange(filterList.Text.Split('\n'));
+            FileDataReader.ProgramSettings.SettingsWindow.AlwaysClearLogs = alwaysClearLogs.Checked;
+            FileDataReader.ProgramSettings.SettingsWindow.MoveFileToRecycleBin = moveFilesToBin.Checked;
+            #endregion
         }
 
         public bool IsDirectoryInIgnoredList(string dir) {
-            foreach (string ign in CachedData.IgnoredDirectories) {
+            foreach (string ign in FileDataReader.ProgramSettings.SettingsWindow.IgnoredDirectories) {
                 if (ign != "" && dir.Contains(ign)) {
                     return true;
                 }
@@ -62,7 +62,7 @@ namespace RedundantFileRemover {
 
             if (dialog.ShowDialog() == DialogResult.OK) {
                 string selectedPath = dialog.SelectedPath;
-                if (CachedData.IgnoredDirectories.Contains(selectedPath)) {
+                if (FileDataReader.ProgramSettings.SettingsWindow.IgnoredDirectories.Contains(selectedPath)) {
                     return;
                 }
 
@@ -74,7 +74,7 @@ namespace RedundantFileRemover {
                 error.Text = "";
 
                 filterList.Items.Add(selectedPath);
-                CachedData.IgnoredDirectories.Add(selectedPath);
+                FileDataReader.ProgramSettings.SettingsWindow.IgnoredDirectories.Add(selectedPath);
                 removeFilters.Enabled = true;
             }
         }
@@ -82,7 +82,7 @@ namespace RedundantFileRemover {
         private void removeFilters_Click(object sender, EventArgs e) {
             if (filterList.SelectedItems.Count == 0) {
                 filterList.Items.Clear();
-                CachedData.IgnoredDirectories.Clear();
+                FileDataReader.ProgramSettings.SettingsWindow.IgnoredDirectories.Clear();
             } else {
                 List<string> list = new List<string>();
                 foreach (string r in filterList.SelectedItems) {
@@ -91,7 +91,7 @@ namespace RedundantFileRemover {
 
                 foreach (string item in list) {
                     filterList.Items.Remove(item);
-                    CachedData.IgnoredDirectories.Remove(item);
+                    FileDataReader.ProgramSettings.SettingsWindow.IgnoredDirectories.Remove(item);
                 }
 
                 filterList.SelectedItems.Clear();
@@ -137,7 +137,7 @@ namespace RedundantFileRemover {
                             MessageBox.Show("File not found", "The file to open does not exist: " + ex.Message, MessageBoxButtons.OK);
                         }
                     } else if (toolStripItem.Text == "Remove from list") {
-                        CachedData.IgnoredDirectories.Remove(selectedItem.ToString());
+                        FileDataReader.ProgramSettings.SettingsWindow.IgnoredDirectories.Remove(selectedItem.ToString());
                     }
                 }
 

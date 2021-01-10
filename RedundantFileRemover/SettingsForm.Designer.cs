@@ -33,6 +33,7 @@ namespace RedundantFileRemover {
             this.errorLoggingLabel = new System.Windows.Forms.Label();
             this.errorLogging = new System.Windows.Forms.CheckBox();
             this.alwaysClearLogs = new System.Windows.Forms.CheckBox();
+            this.moveFilesToBin = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // removeFilters
@@ -137,11 +138,22 @@ namespace RedundantFileRemover {
             this.alwaysClearLogs.Text = "Always clear logs before search operation";
             this.alwaysClearLogs.UseVisualStyleBackColor = true;
             // 
+            // moveFilesToBin
+            // 
+            this.moveFilesToBin.AutoSize = true;
+            this.moveFilesToBin.Location = new System.Drawing.Point(14, 112);
+            this.moveFilesToBin.Name = "moveFilesToBin";
+            this.moveFilesToBin.Size = new System.Drawing.Size(272, 20);
+            this.moveFilesToBin.TabIndex = 34;
+            this.moveFilesToBin.Text = "Move files to recycle bin instead of deleting";
+            this.moveFilesToBin.UseVisualStyleBackColor = true;
+            // 
             // SettingsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(629, 382);
+            this.Controls.Add(this.moveFilesToBin);
             this.Controls.Add(this.alwaysClearLogs);
             this.Controls.Add(this.errorLogging);
             this.Controls.Add(this.errorLoggingLabel);
@@ -175,5 +187,6 @@ namespace RedundantFileRemover {
         private System.Windows.Forms.Label errorLoggingLabel;
         public System.Windows.Forms.CheckBox alwaysClearLogs;
         private System.Windows.Forms.CheckBox errorLogging;
+        public System.Windows.Forms.CheckBox moveFilesToBin;
     }
 }

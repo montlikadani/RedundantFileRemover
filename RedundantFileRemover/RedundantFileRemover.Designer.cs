@@ -223,6 +223,8 @@ namespace RedundantFileRemover {
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScroll = true;
+            this.AutoValidate = System.Windows.Forms.AutoValidate.EnableAllowFocusChange;
             this.ClientSize = new System.Drawing.Size(1050, 588);
             this.Controls.Add(this.showErrors);
             this.Controls.Add(this.patternFileTypes);

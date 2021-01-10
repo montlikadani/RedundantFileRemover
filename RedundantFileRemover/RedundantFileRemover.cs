@@ -5,7 +5,7 @@ using System.Windows.Forms;
 using Sys­tem.Threading.Tasks;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Threading;
+using RedundantFileRemover.UserSettingsData;
 
 namespace RedundantFileRemover {
     public partial class RedundantFileRemover : Form {
@@ -27,31 +27,29 @@ namespace RedundantFileRemover {
             FormClosing += new FormClosingEventHandler(Form_Closing);
             Application.ApplicationExit += new EventHandler(Form_Exit);
 
-            folderPath.Text = CachedData.FolderPath;
-            onlyFoundFiles.Checked = CachedData.PrintOnlyFoundFiles;
-            searchEmptyFolders.Checked = CachedData.SearchEmptyFolders;
-            searchEmptyFiles.Checked = CachedData.SearchEmptyFiles;
-            patternFileTypes.Text = CachedData.PatternFileTypes;
+            #region Load data from cache
+            folderPath.Text = FileDataReader.ProgramSettings.MainWindow.FolderPath;
+            onlyFoundFiles.Checked = FileDataReader.ProgramSettings.MainWindow.PrintOnlyFoundFiles;
+            searchEmptyFolders.Checked = FileDataReader.ProgramSettings.MainWindow.SearchEmptyFolders;
+            searchEmptyFiles.Checked = FileDataReader.ProgramSettings.MainWindow.SearchEmptyFiles;
+            patternFileTypes.Text = FileDataReader.ProgramSettings.MainWindow.PatternFileTypes;
 
             if ((!searchEmptyFiles.Checked || patternFileTypes.Text == "") && !searchEmptyFolders.Checked) {
                 searchButton.Enabled = false;
             }
+            #endregion
         }
 
         void Form_Closing(object sender, FormClosingEventArgs e) {
-            CachedData.PrintOnlyFoundFiles = onlyFoundFiles.Checked;
-            CachedData.SearchEmptyFolders = searchEmptyFolders.Checked;
-            CachedData.SearchEmptyFiles = searchEmptyFiles.Checked;
-            CachedData.PatternFileTypes = patternFileTypes.Text;
-            CachedData.FolderPath = folderPath.Text;
+            FileDataReader.ProgramSettings.MainWindow.PrintOnlyFoundFiles = onlyFoundFiles.Checked;
+            FileDataReader.ProgramSettings.MainWindow.SearchEmptyFolders = searchEmptyFolders.Checked;
+            FileDataReader.ProgramSettings.MainWindow.SearchEmptyFiles = searchEmptyFiles.Checked;
+            FileDataReader.ProgramSettings.MainWindow.PatternFileTypes = patternFileTypes.Text;
+            FileDataReader.ProgramSettings.MainWindow.FolderPath = folderPath.Text;
         }
 
         void Form_Exit(object sender, EventArgs e) {
-            Properties.Settings.Default.PrintOnlyFoundFiles = CachedData.PrintOnlyFoundFiles;
-            Properties.Settings.Default.SearchEmptyFolders = CachedData.SearchEmptyFolders;
-            Properties.Settings.Default.SearchEmptyFiles = CachedData.SearchEmptyFiles;
-            Properties.Settings.Default.PatternFileTypes = CachedData.PatternFileTypes;
-            Properties.Settings.Default.FolderPath = CachedData.FolderPath;
+            Program.ConfigFile.SaveAllSettings();
         }
 
         private void browseButton_Click(object sender, EventArgs e) {
@@ -114,6 +112,7 @@ namespace RedundantFileRemover {
                 processLabel.Refresh();
             }
 
+            #region Disabling and clearing some options
             paused = false;
             searchButton.Enabled = false;
             UseWaitCursor = true;
@@ -139,6 +138,7 @@ namespace RedundantFileRemover {
             if (searchEmptyFiles.Checked) {
                 removedAmount.Text += " 0 empty files";
             }
+            #endregion
 
             object obj = new object();
 
@@ -155,7 +155,7 @@ namespace RedundantFileRemover {
                     }
 
                     if (ErrorViewer.errorLogs.TextLength > 0 && !showErrors.Enabled) {
-                        showErrors.Enabled = CachedData.ErrorLogging; // Enable show errors button
+                        showErrors.Enabled = FileDataReader.ProgramSettings.SettingsWindow.ErrorLogging; // Enable show errors button
                     }
 
                     lock (obj) {
@@ -195,7 +195,7 @@ namespace RedundantFileRemover {
                     }
 
                     if (ErrorViewer.errorLogs.TextLength > 0 && !showErrors.Enabled) {
-                        showErrors.Enabled = CachedData.ErrorLogging; // Enable show errors button
+                        showErrors.Enabled = FileDataReader.ProgramSettings.SettingsWindow.ErrorLogging; // Enable show errors button
                     }
 
                     lock (obj) {
@@ -240,6 +240,7 @@ namespace RedundantFileRemover {
                 }
             }
 
+            #region Re-enabling options
             if (emptyFolders > 0 || emptyFiles > 0) {
                 removeAll.Enabled = true;
             }
@@ -257,6 +258,7 @@ namespace RedundantFileRemover {
             searchEmptyFiles.Enabled = true;
             patternFileTypes.Enabled = true;
             stopTask.Enabled = false;
+            #endregion
         }
 
         private void stopTask_Click(object sender, EventArgs e) {
@@ -273,15 +275,25 @@ namespace RedundantFileRemover {
         }
 
         private void removeAll_Click(object sender, EventArgs e) {
-            DialogResult result = MessageBox.Show("Are you sure that you want to remove all files?",
-                "Confirmation", MessageBoxButtons.YesNo);
+            DialogResult result = MessageBox.Show("Are you sure that you want to remove all files?" + nl + nl
+                + "Selected action: " + (FileDataReader.ProgramSettings.SettingsWindow.MoveFileToRecycleBin ? "Move to recycle bin" : "Remove entirely"),
+                "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
             if (result != DialogResult.Yes) {
                 return;
             }
 
             emptyFilesList.ForEach(file => {
                 if (file.Exists && file.Length <= 0) {
-                    file.Delete();
+                    try {
+                        if (FileDataReader.ProgramSettings.SettingsWindow.MoveFileToRecycleBin) {
+                            file.MoveTo(@"C:\$Recycle.Bin");
+                        } else {
+                            file.Delete();
+                        }
+                    } catch (Exception ex) {
+                        LogException(ex.Message + " " + ex.StackTrace);
+                        return;
+                    }
 
                     logs.AppendText(nl);
                     logs.AppendText("File removed: " + file.FullName);
@@ -290,7 +302,16 @@ namespace RedundantFileRemover {
 
             emptyDirectories.ForEach(dir => {
                 if (dir.Exists && dir.GetFiles().Length == 0 && dir.GetDirectories().Length == 0) {
-                    dir.Delete();
+                    try {
+                        if (FileDataReader.ProgramSettings.SettingsWindow.MoveFileToRecycleBin) {
+                            dir.MoveTo(@"C:\$Recycle.Bin");
+                        } else {
+                            dir.Delete();
+                        }
+                    } catch (Exception ex) {
+                        LogException(ex.Message + " " + ex.StackTrace);
+                        return;
+                    }
 
                     logs.AppendText(nl);
                     logs.AppendText("Directory removed: " + dir.FullName);
@@ -329,7 +350,7 @@ namespace RedundantFileRemover {
         }
 
         public static bool LogException(string s) {
-            if (!CachedData.ErrorLogging || string.IsNullOrWhiteSpace(s)) {
+            if (!FileDataReader.ProgramSettings.SettingsWindow.ErrorLogging || string.IsNullOrWhiteSpace(s)) {
                 return false;
             }
 

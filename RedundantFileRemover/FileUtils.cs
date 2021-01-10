@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RedundantFileRemover.UserSettingsData;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -38,7 +39,7 @@ namespace RedundantFileRemover {
                                 var dirInfo = directories.ElementAt(i);
                                 accessibleFiles.Add(dirInfo);
 
-                                if (CachedData.SearchInSubDirectories) {
+                                if (FileDataReader.ProgramSettings.SettingsWindow.SearchInSubDirectories) {
                                     CollectAccessibleFiles(dirInfo, sp, isDir);
                                 }
                             } catch (Exception ex) {
@@ -65,7 +66,7 @@ namespace RedundantFileRemover {
                                 }
                             }
 
-                            if (CachedData.SearchInSubDirectories) {
+                            if (FileDataReader.ProgramSettings.SettingsWindow.SearchInSubDirectories) {
                                 CollectAccessibleFiles(directories[i], sp, isDir);
                             }
                         } catch (Exception ex) {
