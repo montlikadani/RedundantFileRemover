@@ -33,6 +33,8 @@ namespace RedundantFileRemover {
             searchEmptyFolders.Checked = FileDataReader.ProgramSettings.MainWindow.SearchEmptyFolders;
             searchEmptyFiles.Checked = FileDataReader.ProgramSettings.MainWindow.SearchEmptyFiles;
             patternFileTypes.Text = FileDataReader.ProgramSettings.MainWindow.PatternFileTypes;
+            showErrors.Visible = FileDataReader.ProgramSettings.SettingsWindow.ErrorLogging;
+            autoScroll.Checked = FileDataReader.ProgramSettings.MainWindow.AutoScroll;
 
             if ((!searchEmptyFiles.Checked || patternFileTypes.Text == "") && !searchEmptyFolders.Checked) {
                 searchButton.Enabled = false;
@@ -46,6 +48,7 @@ namespace RedundantFileRemover {
             FileDataReader.ProgramSettings.MainWindow.SearchEmptyFiles = searchEmptyFiles.Checked;
             FileDataReader.ProgramSettings.MainWindow.PatternFileTypes = patternFileTypes.Text;
             FileDataReader.ProgramSettings.MainWindow.FolderPath = folderPath.Text;
+            FileDataReader.ProgramSettings.MainWindow.AutoScroll = autoScroll.Checked;
         }
 
         void Form_Exit(object sender, EventArgs e) {
@@ -53,7 +56,10 @@ namespace RedundantFileRemover {
         }
 
         private void browseButton_Click(object sender, EventArgs e) {
-            var openFolder = new FolderBrowserDialog();
+            var openFolder = new FolderBrowserDialog() {
+                ShowNewFolderButton = false
+            };
+
             if (openFolder.ShowDialog() == DialogResult.OK) {
                 if (!FileUtils.IsNotSpecialFolder(openFolder.SelectedPath)) {
                     MessageBox.Show("The selected path can't be system files!", "System file detected", MessageBoxButtons.OK);
@@ -74,7 +80,7 @@ namespace RedundantFileRemover {
                 return;
             }
 
-            logs.Clear();
+            logs.Items.Clear();
 
             var directoryInfo = new DirectoryInfo(folderPath.Text);
             if (!directoryInfo.Exists) {
@@ -114,21 +120,22 @@ namespace RedundantFileRemover {
 
             #region Disabling and clearing some options
             paused = false;
-            searchButton.Enabled = false;
             UseWaitCursor = true;
+            searchButton.Enabled = false;
             browseButton.Enabled = false;
             removeAll.Enabled = false;
             stopTask.Enabled = true;
-            logs.ScrollBars = ScrollBars.Both;
             onlyFoundFiles.Enabled = false;
             searchEmptyFolders.Enabled = false;
             searchEmptyFiles.Enabled = false;
             patternFileTypes.Enabled = false;
             settingsMenu.Enabled = false;
             clearButton.Enabled = false;
+            logs.SelectionMode = SelectionMode.None;
             if (settings.alwaysClearLogs.Checked) {
                 ErrorViewer.errorLogs.Clear();
             }
+            removedFilesList.Clear();
             emptyFilesList.Clear();
             emptyDirectories.Clear();
             removedAmount.Text = "";
@@ -140,9 +147,10 @@ namespace RedundantFileRemover {
             }
             #endregion
 
+            Graphics g = logs.CreateGraphics();
             object obj = new object();
+            int lastStringWidth = 0;
 
-            int emptyFiles = 0, emptyFolders = 0;
             if (searchEmptyFiles.Checked) {
                 foreach (FileInfo fileInfo in FileUtils.GetFiles(directoryInfo, patternFileTypes.Text.Replace(',', '|').Replace(" ", ""), false)) {
                     if (paused) {
@@ -164,18 +172,28 @@ namespace RedundantFileRemover {
                         }
 
                         if (!onlyFoundFiles.Checked) {
-                            logs.AppendText(fileInfo.FullName);
-                            logs.AppendText(nl);
+                            logs.Items.Add(fileInfo.FullName);
                         }
 
                         if (fileInfo.Exists && fileInfo.Length <= 0) {
                             emptyFilesList.Add(fileInfo);
-                            removedAmount.Text = (searchEmptyFolders.Checked ? emptyFolders + " empty folders, " : "") + ++emptyFiles + " empty files";
+                            removedAmount.Text = (searchEmptyFolders.Checked ? emptyDirectories.Count + " empty folders, " : "") + emptyFilesList.Count + " empty files";
 
                             if (onlyFoundFiles.Checked) {
-                                logs.AppendText(fileInfo.FullName);
-                                logs.AppendText(nl);
+                                logs.Items.Add(fileInfo.FullName);
                             }
+                        }
+
+                        // Change horizontal scroll bar if path is too long
+                        int sWidth = (int) g.MeasureString(fileInfo.FullName, logs.Font).Width;
+                        if (sWidth > logs.Width && lastStringWidth < sWidth) {
+                            logs.HorizontalExtent = sWidth;
+                            lastStringWidth = sWidth;
+                        }
+
+                        // Auto-scroll calculating
+                        if (autoScroll.Checked) {
+                            logs.TopIndex = logs.Items.Count - (logs.Height / logs.ItemHeight + 2); // + 2 to avoid "fast flickering"
                         }
                     }
 
@@ -204,22 +222,32 @@ namespace RedundantFileRemover {
                         }
 
                         if (!onlyFoundFiles.Checked) {
-                            logs.AppendText(dInfo.FullName);
-                            logs.AppendText(nl);
+                            logs.Items.Add(dInfo.FullName);
                         }
 
                         try {
                             if (dInfo.Exists && !Directory.EnumerateFileSystemEntries(dInfo.FullName).Any() && dInfo.GetFiles().Length == 0 && dInfo.GetDirectories().Length == 0) {
-                                removedAmount.Text = ++emptyFolders + " empty folders" + (searchEmptyFiles.Checked ? ", " + emptyFiles + " empty files" : "");
                                 emptyDirectories.Add(dInfo);
+                                removedAmount.Text = emptyDirectories.Count + " empty folders" + (searchEmptyFiles.Checked ? ", " + emptyFilesList.Count + " empty files" : "");
 
                                 if (onlyFoundFiles.Checked) {
-                                    logs.AppendText(dInfo.FullName);
-                                    logs.AppendText(nl);
+                                    logs.Items.Add(dInfo.FullName);
                                 }
                             }
                         } catch (Exception ex) {
                             LogException(ex.Message + " " + ex.StackTrace);
+                        }
+
+                        // Change horizontal scroll bar if path is too long
+                        int sWidth = (int) g.MeasureString(dInfo.FullName, logs.Font).Width;
+                        if (sWidth > logs.Width && lastStringWidth < sWidth) {
+                            logs.HorizontalExtent = sWidth;
+                            lastStringWidth = sWidth;
+                        }
+
+                        // Auto-scroll calculating
+                        if (autoScroll.Checked) {
+                            logs.TopIndex = logs.Items.Count - (logs.Height / logs.ItemHeight + 2); // + 2 to avoid "fast flickering"
                         }
                     }
 
@@ -232,7 +260,7 @@ namespace RedundantFileRemover {
                 waitingWindow.Close();
             }
 
-            if (emptyFiles == 0 && emptyFolders == 0) {
+            if (!paused && emptyFilesList.Count == 0 && emptyDirectories.Count == 0) {
                 DialogResult result = MessageBox.Show("There is no any empty " + (searchEmptyFiles.Checked ? "file " : "")
                     + (searchEmptyFolders.Checked ? "and folder " : "") + ".", "Empty directory", MessageBoxButtons.OK);
                 if (result != DialogResult.OK) {
@@ -241,14 +269,15 @@ namespace RedundantFileRemover {
             }
 
             #region Re-enabling options
-            if (emptyFolders > 0 || emptyFiles > 0) {
+            if (emptyDirectories.Count > 0 || emptyFilesList.Count > 0) {
                 removeAll.Enabled = true;
             }
 
-            if (logs.TextLength > 0) {
+            if (logs.Items.Count > 0) {
                 clearButton.Enabled = true;
             }
 
+            logs.SelectionMode = SelectionMode.One;
             UseWaitCursor = false;
             searchButton.Enabled = true;
             settingsMenu.Enabled = true;
@@ -267,11 +296,14 @@ namespace RedundantFileRemover {
         }
 
         private void clearButton_Click(object sender, EventArgs e) {
-            logs.Clear();
+            logs.Items.Clear();
+            removedFilesList.Clear();
 
+            removedFilesList.Visible = false;
             clearButton.Enabled = false;
             removeAll.Enabled = false;
             removedAmount.Text = "";
+            logs.HorizontalExtent = 1; // Reset horizontal scroll bar to default value
         }
 
         private void removeAll_Click(object sender, EventArgs e) {
@@ -281,6 +313,8 @@ namespace RedundantFileRemover {
             if (result != DialogResult.Yes) {
                 return;
             }
+
+            removedFilesList.Visible = true;
 
             emptyFilesList.ForEach(file => {
                 if (file.Exists && file.Length <= 0) {
@@ -295,8 +329,8 @@ namespace RedundantFileRemover {
                         return;
                     }
 
-                    logs.AppendText(nl);
-                    logs.AppendText("File removed: " + file.FullName);
+                    removedFilesList.AppendText("File removed: " + file.FullName);
+                    removedFilesList.AppendText(nl);
                 }
             });
 
@@ -313,8 +347,8 @@ namespace RedundantFileRemover {
                         return;
                     }
 
-                    logs.AppendText(nl);
-                    logs.AppendText("Directory removed: " + dir.FullName);
+                    removedFilesList.AppendText("Directory removed: " + dir.FullName);
+                    removedFilesList.AppendText(nl);
                 }
             });
 
@@ -347,6 +381,59 @@ namespace RedundantFileRemover {
         private void showErrors_Click(object sender, EventArgs e) {
             AddOwnedForm(ErrorViewer);
             ErrorViewer.ShowDialog();
+        }
+
+        private void logsFilesBox_MouseDown(object sender, MouseEventArgs e) {
+            if (logs.SelectedItems.Count == 0 || e.Button != MouseButtons.Right) {
+                return;
+            }
+
+            ContextMenuStrip cms = new ContextMenuStrip();
+            cms.Click += OnLogsFilesBoxClicked;
+
+            cms.Items.Add("Remove");
+            cms.Items.Add("Open in file explorer");
+
+            if (sender is Control control) {
+                cms.Show(this, new Point(e.X + control.Left, e.Y + control.Top));
+            }
+
+            logs.ContextMenuStrip = cms;
+        }
+
+        private void OnLogsFilesBoxClicked(object sender, EventArgs e) {
+            if (e is MouseEventArgs mouse && mouse.Button == MouseButtons.Left && logs.SelectedItems.Count > 0) {
+                ContextMenuStrip cms = sender as ContextMenuStrip;
+                object selectedItem = logs.SelectedItem;
+
+                var toolStripItem = cms?.GetItemAt(mouse.Location);
+                if (toolStripItem != null) {
+                    if (toolStripItem.Text == "Open in file explorer") {
+                        try {
+                            string si = selectedItem.ToString();
+                            System.Diagnostics.Process.Start("explorer.exe", File.Exists(si) ? new FileInfo(si).DirectoryName : si);
+                        } catch (Exception ex) {
+                            LogException(ex.Message + " " + ex.StackTrace);
+                            MessageBox.Show("File not found", "The file to open does not exist: " + ex.Message, MessageBoxButtons.OK);
+                        }
+                    } else if (toolStripItem.Text == "Remove") {
+                        logs.Items.Remove(selectedItem);
+
+                        string si = selectedItem.ToString();
+                        if (Directory.Exists(si)) {
+                            Directory.Delete(si, true);
+                        } else if (File.Exists(si)) {
+                            File.Delete(si);
+                        }
+                    }
+                }
+
+                if (cms != null) {
+                    cms.Close();
+                }
+
+                logs.SelectedItems.Clear();
+            }
         }
 
         public static bool LogException(string s) {

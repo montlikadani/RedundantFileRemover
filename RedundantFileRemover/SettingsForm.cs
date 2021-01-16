@@ -1,7 +1,6 @@
 ﻿using RedundantFileRemover.UserSettingsData;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -31,20 +30,24 @@ namespace RedundantFileRemover {
         void SettingsForm_FormClosing(object sender, FormClosingEventArgs e) {
             SettingsForm_FormExit(sender, e);
 
-            // Hiding ShowErrors button in main window
-            if (!errorLogging.Checked && Owner is RedundantFileRemover rfr) {
-                rfr.showErrors.Enabled = false;
+            // ShowErrors button in main window
+            if (Owner is RedundantFileRemover rfr) {
+                if (!errorLogging.Checked) {
+                    rfr.showErrors.Enabled = false;
+                }
+
+                if (errorLogging.Checked && !rfr.showErrors.Visible) {
+                    rfr.showErrors.Visible = true;
+                }
             }
         }
 
         void SettingsForm_FormExit(object sender, EventArgs e) {
-            #region save cached data
             FileDataReader.ProgramSettings.SettingsWindow.ErrorLogging = errorLogging.Checked;
             FileDataReader.ProgramSettings.SettingsWindow.SearchInSubDirectories = searchInSubDirs.Checked;
             FileDataReader.ProgramSettings.SettingsWindow.IgnoredDirectories.AddRange(filterList.Text.Split('\n'));
             FileDataReader.ProgramSettings.SettingsWindow.AlwaysClearLogs = alwaysClearLogs.Checked;
             FileDataReader.ProgramSettings.SettingsWindow.MoveFileToRecycleBin = moveFilesToBin.Checked;
-            #endregion
         }
 
         public bool IsDirectoryInIgnoredList(string dir) {
@@ -58,7 +61,9 @@ namespace RedundantFileRemover {
         }
 
         private void browseFiltersButton_Click(object sender, EventArgs e) {
-            var dialog = new FolderBrowserDialog();
+            var dialog = new FolderBrowserDialog {
+                ShowNewFolderButton = false
+            };
 
             if (dialog.ShowDialog() == DialogResult.OK) {
                 string selectedPath = dialog.SelectedPath;
@@ -122,12 +127,12 @@ namespace RedundantFileRemover {
 
         private void OnFilterListClicked(object sender, EventArgs e) {
             if (e is MouseEventArgs mouse && mouse.Button == MouseButtons.Left && filterList.SelectedItems.Count > 0) {
-                ContextMenuStrip cms = sender is ContextMenuStrip ? sender as ContextMenuStrip : null;
+                ContextMenuStrip cms = sender as ContextMenuStrip;
                 object selectedItem = filterList.SelectedItem;
 
                 filterList.Items.Remove(selectedItem);
 
-                var toolStripItem = cms.GetItemAt(mouse.Location);
+                var toolStripItem = cms?.GetItemAt(mouse.Location);
                 if (toolStripItem != null) {
                     if (toolStripItem.Text == "Open in file explorer") {
                         try {

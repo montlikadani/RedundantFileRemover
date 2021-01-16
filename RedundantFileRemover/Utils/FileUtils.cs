@@ -10,7 +10,7 @@ namespace RedundantFileRemover {
         private static readonly List<FileSystemInfo> accessibleFiles = new List<FileSystemInfo>();
 
         public static bool IsFileNotHidden(FileSystemInfo fileSystemInfo) {
-            return fileSystemInfo.Attributes != FileAttributes.Hidden;
+            return fileSystemInfo.Attributes != FileAttributes.Hidden && fileSystemInfo.Attributes != FileAttributes.System;
         }
 
         public static List<FileSystemInfo> GetFiles(DirectoryInfo directoryInfo, string searchPattern, bool isDir) {
@@ -30,11 +30,14 @@ namespace RedundantFileRemover {
 
         private static void CollectAccessibleFiles(DirectoryInfo directoryInfo, string sp, bool isDir) {
             try {
-                var directories = directoryInfo.EnumerateDirectories().ToArray();
+                var directories = directoryInfo.EnumerateDirectories()
+                    .Where(d => !d.FullName.Replace(" ", "").Contains("RedundantFileRemover"))
+                    .Where(d => IsNotSpecialFolder(d.Name))
+                    .Where(d => IsFileNotHidden(d)).ToArray();
 
                 if (isDir) {
                     for (int i = 0; i < directories.Length; i++) {
-                        if (directories[i].Exists && IsNotSpecialFolder(directories[i].Name) && IsFileNotHidden(directories[i])) {
+                        if (directories[i].Exists) {
                             try {
                                 var dirInfo = directories.ElementAt(i);
                                 accessibleFiles.Add(dirInfo);
@@ -54,15 +57,13 @@ namespace RedundantFileRemover {
                                 continue;
                             }
 
-                            if (IsNotSpecialFolder(directories[i].Name) && IsFileNotHidden(directories[i])) {
-                                foreach (FileInfo fileInfo in directories[i].GetFiles('*' + sp)) {
-                                    try {
-                                        if (fileInfo.Exists && IsFileNotHidden(fileInfo)) {
-                                            accessibleFiles.Add(fileInfo);
-                                        }
-                                    } catch (Exception exe) {
-                                        RedundantFileRemover.LogException(exe.Message + " " + exe.StackTrace);
+                            foreach (FileInfo fileInfo in directories[i].GetFiles('*' + sp)) {
+                                try {
+                                    if (fileInfo.Exists && IsFileNotHidden(fileInfo)) {
+                                        accessibleFiles.Add(fileInfo);
                                     }
+                                } catch (Exception exe) {
+                                    RedundantFileRemover.LogException(exe.Message + " " + exe.StackTrace);
                                 }
                             }
 

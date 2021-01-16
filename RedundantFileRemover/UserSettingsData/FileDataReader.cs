@@ -7,7 +7,7 @@ using YamlDotNet.RepresentationModel;
 using YamlDotNet.Serialization;
 
 namespace RedundantFileRemover.UserSettingsData {
-    sealed class FileDataReader : IFileDataReader {
+    sealed class FileDataReader {
 
         private readonly FileInfo fi;
         public FileInfo DataFile => fi;
@@ -28,7 +28,14 @@ namespace RedundantFileRemover.UserSettingsData {
                 fi.Create().Close();
             }
 
-            ReadContent();
+            if (fi.Exists && fi.Length > 0) {
+                try {
+                    using (StreamReader reader = fi.OpenText()) {
+                        ps = new DeserializerBuilder().IgnoreUnmatchedProperties().Build().Deserialize<ProgramSettings>(reader);
+                    }
+                } catch (Exception) {
+                }
+            }
         }
 
         // Remove temporary file
@@ -39,16 +46,6 @@ namespace RedundantFileRemover.UserSettingsData {
             }
         }
 
-        private void ReadContent() {
-            if (!fi.Exists || fi.Length <= 0) {
-                return;
-            }
-
-            using (StreamReader reader = fi.OpenText()) {
-                ps = new DeserializerBuilder().IgnoreUnmatchedProperties().Build().Deserialize<ProgramSettings>(reader);
-            }
-        }
-
         public void Save(YamlStream stream) {
             using (TextWriter writer = fi.CreateText()) {
                 stream.Save(writer, false);
@@ -56,12 +53,17 @@ namespace RedundantFileRemover.UserSettingsData {
         }
 
         public void SaveAllSettings() {
+            if (!fi.Exists) {
+                fi.Create().Close();
+            }
+
             var mainNode = new YamlMappingNode {
                 { "FolderPath", ps.MainWindow.FolderPath },
                 { "PrintOnlyFoundFiles", ps.MainWindow.PrintOnlyFoundFiles.ToString().ToLower() },
                 { "SearchEmptyFolders", ps.MainWindow.SearchEmptyFolders.ToString().ToLower() },
                 { "SearchEmptyFiles", ps.MainWindow.SearchEmptyFiles.ToString().ToLower() },
-                { "PatternFileTypes", ps.MainWindow.PatternFileTypes }
+                { "PatternFileTypes", ps.MainWindow.PatternFileTypes },
+                { "AutoScroll", ps.MainWindow.AutoScroll.ToString().ToLower() }
             };
 
             var idList = new YamlSequenceNode {
@@ -108,6 +110,8 @@ namespace RedundantFileRemover.UserSettingsData {
 
         public string PatternFileTypes { get; set; } = ".ini, .txt";
 
+        public bool AutoScroll { get; set; } = false;
+
     }
 
     public class SettingsWindow {
@@ -116,7 +120,7 @@ namespace RedundantFileRemover.UserSettingsData {
 
         public List<string> IgnoredDirectories { get; set; } = new List<string>();
 
-        public bool ErrorLogging { get; set; } = true;
+        public bool ErrorLogging { get; set; } = false;
 
         public bool AlwaysClearLogs { get; set; } = false;
 

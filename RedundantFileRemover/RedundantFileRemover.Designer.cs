@@ -29,7 +29,6 @@ namespace RedundantFileRemover {
             this.browseButton = new System.Windows.Forms.Button();
             this.folderPath = new System.Windows.Forms.TextBox();
             this.searchButton = new System.Windows.Forms.Button();
-            this.logs = new System.Windows.Forms.TextBox();
             this.stopTask = new System.Windows.Forms.Button();
             this.clearButton = new System.Windows.Forms.Button();
             this.removeAll = new System.Windows.Forms.Button();
@@ -43,6 +42,9 @@ namespace RedundantFileRemover {
             this.exitItem = new System.Windows.Forms.MenuItem();
             this.settingsMenu = new System.Windows.Forms.MenuItem();
             this.showErrors = new System.Windows.Forms.Button();
+            this.logs = new System.Windows.Forms.ListBox();
+            this.removedFilesList = new System.Windows.Forms.TextBox();
+            this.autoScroll = new System.Windows.Forms.CheckBox();
             pathToSearch = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
@@ -84,15 +86,6 @@ namespace RedundantFileRemover {
             this.searchButton.Text = "Search";
             this.searchButton.UseVisualStyleBackColor = true;
             this.searchButton.Click += new System.EventHandler(this.searchButton_Click);
-            // 
-            // logs
-            // 
-            this.logs.Location = new System.Drawing.Point(29, 159);
-            this.logs.Multiline = true;
-            this.logs.Name = "logs";
-            this.logs.ReadOnly = true;
-            this.logs.Size = new System.Drawing.Size(884, 331);
-            this.logs.TabIndex = 5;
             // 
             // stopTask
             // 
@@ -156,7 +149,7 @@ namespace RedundantFileRemover {
             // removedAmount
             // 
             this.removedAmount.AutoSize = true;
-            this.removedAmount.Location = new System.Drawing.Point(30, 140);
+            this.removedAmount.Location = new System.Drawing.Point(32, 146);
             this.removedAmount.Name = "removedAmount";
             this.removedAmount.Size = new System.Drawing.Size(0, 15);
             this.removedAmount.TabIndex = 18;
@@ -219,13 +212,50 @@ namespace RedundantFileRemover {
             this.showErrors.UseVisualStyleBackColor = true;
             this.showErrors.Click += new System.EventHandler(this.showErrors_Click);
             // 
+            // logs
+            // 
+            this.logs.FormattingEnabled = true;
+            this.logs.HorizontalExtent = 1;
+            this.logs.HorizontalScrollbar = true;
+            this.logs.ImeMode = System.Windows.Forms.ImeMode.NoControl;
+            this.logs.ItemHeight = 15;
+            this.logs.Location = new System.Drawing.Point(26, 167);
+            this.logs.Name = "logs";
+            this.logs.Size = new System.Drawing.Size(884, 319);
+            this.logs.TabIndex = 25;
+            this.logs.MouseDown += new System.Windows.Forms.MouseEventHandler(this.logsFilesBox_MouseDown);
+            // 
+            // removedFilesList
+            // 
+            this.removedFilesList.Location = new System.Drawing.Point(26, 496);
+            this.removedFilesList.Multiline = true;
+            this.removedFilesList.Name = "removedFilesList";
+            this.removedFilesList.ReadOnly = true;
+            this.removedFilesList.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.removedFilesList.Size = new System.Drawing.Size(781, 80);
+            this.removedFilesList.TabIndex = 26;
+            this.removedFilesList.Visible = false;
+            // 
+            // autoScroll
+            // 
+            this.autoScroll.AutoSize = true;
+            this.autoScroll.Location = new System.Drawing.Point(783, 142);
+            this.autoScroll.Name = "autoScroll";
+            this.autoScroll.Size = new System.Drawing.Size(127, 19);
+            this.autoScroll.TabIndex = 27;
+            this.autoScroll.Text = "Auto-scroll to end";
+            this.autoScroll.UseVisualStyleBackColor = true;
+            // 
             // RedundantFileRemover
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
             this.AutoValidate = System.Windows.Forms.AutoValidate.EnableAllowFocusChange;
-            this.ClientSize = new System.Drawing.Size(1050, 588);
+            this.ClientSize = new System.Drawing.Size(1169, 588);
+            this.Controls.Add(this.autoScroll);
+            this.Controls.Add(this.removedFilesList);
+            this.Controls.Add(this.logs);
             this.Controls.Add(this.showErrors);
             this.Controls.Add(this.patternFileTypes);
             this.Controls.Add(this.searchEmptyFiles);
@@ -235,7 +265,6 @@ namespace RedundantFileRemover {
             this.Controls.Add(this.removeAll);
             this.Controls.Add(this.clearButton);
             this.Controls.Add(this.stopTask);
-            this.Controls.Add(this.logs);
             this.Controls.Add(this.searchButton);
             this.Controls.Add(pathToSearch);
             this.Controls.Add(this.folderPath);
@@ -258,7 +287,6 @@ namespace RedundantFileRemover {
         private System.Windows.Forms.Button browseButton;
         public System.Windows.Forms.TextBox folderPath;
         private System.Windows.Forms.Button searchButton;
-        private System.Windows.Forms.TextBox logs;
         private System.Windows.Forms.Button stopTask;
         private System.Windows.Forms.Button clearButton;
         private System.Windows.Forms.Button removeAll;
@@ -272,6 +300,9 @@ namespace RedundantFileRemover {
         private System.Windows.Forms.MenuItem settingsMenu;
         private System.Windows.Forms.MenuItem exitItem;
         public System.Windows.Forms.Button showErrors;
+        private System.Windows.Forms.ListBox logs;
+        private System.Windows.Forms.TextBox removedFilesList;
+        private System.Windows.Forms.CheckBox autoScroll;
     }
 }
 

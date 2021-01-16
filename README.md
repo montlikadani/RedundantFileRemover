@@ -16,6 +16,7 @@ Currently it is only available on Windows (10-8). Not sure if it works on lowest
 - Path exceptions when the program does not search for empty files in the specified directories
 - Can search for all known file types, and the user can specify which of the file should search
 - Ability to display errors that occur during a search operation.
+- Pop-up menu on right click when the user want to open or remove the found file manually
 
 More coming in future releases...
 
