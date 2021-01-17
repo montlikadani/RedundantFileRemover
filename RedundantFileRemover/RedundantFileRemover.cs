@@ -105,7 +105,7 @@ namespace RedundantFileRemover {
 
                 Label processLabel = new Label() {
                     Text = "Please wait until the program collects all of directories..." + nl + nl +
-                        "This process can took more than 30 sec depending how many files are on your drive.",
+                        "This process can take more than 30 sec depending how many files are on your drive.",
                     AutoSize = false,
                     Dock = DockStyle.Fill,
                     TextAlign = ContentAlignment.MiddleCenter,
