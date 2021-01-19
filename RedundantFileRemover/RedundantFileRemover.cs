@@ -6,6 +6,7 @@ using Sys­tem.Threading.Tasks;
 using System.Collections.Generic;
 using System.Drawing;
 using RedundantFileRemover.UserSettingsData;
+using Microsoft.VisualBasic.FileIO;
 
 namespace RedundantFileRemover {
     public partial class RedundantFileRemover : Form {
@@ -29,11 +30,10 @@ namespace RedundantFileRemover {
 
             #region Load data from cache
             folderPath.Text = FileDataReader.ProgramSettings.MainWindow.FolderPath;
-            onlyFoundFiles.Checked = FileDataReader.ProgramSettings.MainWindow.PrintOnlyFoundFiles;
             searchEmptyFolders.Checked = FileDataReader.ProgramSettings.MainWindow.SearchEmptyFolders;
             searchEmptyFiles.Checked = FileDataReader.ProgramSettings.MainWindow.SearchEmptyFiles;
             patternFileTypes.Text = FileDataReader.ProgramSettings.MainWindow.PatternFileTypes;
-            showErrors.Visible = FileDataReader.ProgramSettings.SettingsWindow.ErrorLogging;
+            showErrors.Enabled = showErrors.Visible = FileDataReader.ProgramSettings.SettingsWindow.ErrorLogging;
             autoScroll.Checked = FileDataReader.ProgramSettings.MainWindow.AutoScroll;
 
             if ((!searchEmptyFiles.Checked || patternFileTypes.Text == "") && !searchEmptyFolders.Checked) {
@@ -43,7 +43,6 @@ namespace RedundantFileRemover {
         }
 
         void Form_Closing(object sender, FormClosingEventArgs e) {
-            FileDataReader.ProgramSettings.MainWindow.PrintOnlyFoundFiles = onlyFoundFiles.Checked;
             FileDataReader.ProgramSettings.MainWindow.SearchEmptyFolders = searchEmptyFolders.Checked;
             FileDataReader.ProgramSettings.MainWindow.SearchEmptyFiles = searchEmptyFiles.Checked;
             FileDataReader.ProgramSettings.MainWindow.PatternFileTypes = patternFileTypes.Text;
@@ -61,13 +60,12 @@ namespace RedundantFileRemover {
             };
 
             if (openFolder.ShowDialog() == DialogResult.OK) {
-                if (!FileUtils.IsNotSpecialFolder(openFolder.SelectedPath)) {
-                    MessageBox.Show("The selected path can't be system files!", "System file detected", MessageBoxButtons.OK);
-                    return;
-                }
+                // Note: do not check for file attributes as on some systems, the C:\ drive have hidden attribute by default, (why?)
 
                 folderPath.Text = openFolder.SelectedPath;
             }
+
+            openFolder.Dispose();
         }
 
         private async void searchButton_Click(object sender, EventArgs e) {
@@ -75,18 +73,13 @@ namespace RedundantFileRemover {
                 return;
             }
 
-            if (!FileUtils.IsNotSpecialFolder(folderPath.Text)) {
-                MessageBox.Show("The selected path can't be system files!", "System file detected", MessageBoxButtons.OK);
-                return;
-            }
-
-            logs.Items.Clear();
-
             var directoryInfo = new DirectoryInfo(folderPath.Text);
             if (!directoryInfo.Exists) {
                 MessageBox.Show(this, "File/directory not exists");
                 return;
             }
+
+            logs.Items.Clear();
 
             Form waitingWindow = null;
             if (directoryInfo.GetDirectories().Length > 5) {
@@ -97,10 +90,11 @@ namespace RedundantFileRemover {
                     ShowIcon = false,
                     ShowInTaskbar = false,
                     Size = new Size(350, 150),
+                    FormBorderStyle = FormBorderStyle.FixedDialog,
                     MinimizeBox = false,
                     MaximizeBox = false,
-                    FormBorderStyle = FormBorderStyle.FixedDialog,
-                    ControlBox = false // Lets hide every buttons from window
+                    UseWaitCursor = true,
+                    ControlBox = false // Hide every buttons from window
                 };
 
                 Label processLabel = new Label() {
@@ -116,6 +110,7 @@ namespace RedundantFileRemover {
                 processLabel.Invalidate();
                 processLabel.Update();
                 processLabel.Refresh();
+                Enabled = false; // Disable main window while the waiting window is open
             }
 
             #region Disabling and clearing some options
@@ -125,7 +120,6 @@ namespace RedundantFileRemover {
             browseButton.Enabled = false;
             removeAll.Enabled = false;
             stopTask.Enabled = true;
-            onlyFoundFiles.Enabled = false;
             searchEmptyFolders.Enabled = false;
             searchEmptyFiles.Enabled = false;
             patternFileTypes.Enabled = false;
@@ -148,45 +142,43 @@ namespace RedundantFileRemover {
             #endregion
 
             Graphics g = logs.CreateGraphics();
-            object obj = new object();
             int lastStringWidth = 0;
 
+            // Wait and cache all empty files and directories into memory
+            List<FileSystemInfo> collectedFiles = searchEmptyFiles.Checked ? new List<FileSystemInfo>(await FileUtils.GetFiles(directoryInfo,
+                patternFileTypes.Text.Replace(',', '|').Replace(" ", ""), false)) : new List<FileSystemInfo>();
+            List<FileSystemInfo> collectedDirs = searchEmptyFolders.Checked ? await FileUtils.GetFiles(directoryInfo, "*", true) : new List<FileSystemInfo>();
+
             if (searchEmptyFiles.Checked) {
-                foreach (FileInfo fileInfo in FileUtils.GetFiles(directoryInfo, patternFileTypes.Text.Replace(',', '|').Replace(" ", ""), false)) {
+                foreach (FileSystemInfo fileSystemInfo in collectedFiles) {
                     if (paused) {
                         break;
+                    }
+
+                    if (fileSystemInfo is not FileInfo fileInfo) {
+                        continue;
+                    }
+
+                    if (FileUtils.IsFileHasAttribute(fileInfo, FileAttributes.Hidden, FileAttributes.System) || settings.IsDirectoryInIgnoredList(fileInfo.FullName)
+                         || FileUtils.IsFileLocked(fileInfo.FullName)) {
+                        continue; // There are chances when files attributes are changed during search
                     }
 
                     if (waitingWindow != null && !waitingWindow.IsDisposed) {
                         waitingWindow.Dispose();
                         waitingWindow.Close();
+                        Enabled = true;
                     }
 
-                    if (ErrorViewer.errorLogs.TextLength > 0 && !showErrors.Enabled) {
-                        showErrors.Enabled = FileDataReader.ProgramSettings.SettingsWindow.ErrorLogging; // Enable show errors button
-                    }
+                    if (File.Exists(fileInfo.FullName) && fileInfo.Length <= 0) {
+                        emptyFilesList.Add(fileInfo);
+                        removedAmount.Text = (searchEmptyFolders.Checked ? emptyDirectories.Count + " empty folders, " : "") + emptyFilesList.Count + " empty files";
 
-                    lock (obj) {
-                        if (!FileUtils.IsFileNotHidden(fileInfo) || settings.IsDirectoryInIgnoredList(fileInfo.FullName)) {
-                            continue;
-                        }
+                        logs.Items.Add(fileInfo.FullName);
 
-                        if (!onlyFoundFiles.Checked) {
-                            logs.Items.Add(fileInfo.FullName);
-                        }
-
-                        if (fileInfo.Exists && fileInfo.Length <= 0) {
-                            emptyFilesList.Add(fileInfo);
-                            removedAmount.Text = (searchEmptyFolders.Checked ? emptyDirectories.Count + " empty folders, " : "") + emptyFilesList.Count + " empty files";
-
-                            if (onlyFoundFiles.Checked) {
-                                logs.Items.Add(fileInfo.FullName);
-                            }
-                        }
-
-                        // Change horizontal scroll bar if path is too long
-                        int sWidth = (int) g.MeasureString(fileInfo.FullName, logs.Font).Width;
-                        if (sWidth > logs.Width && lastStringWidth < sWidth) {
+                        // Make visible horizontal scroll bar if path is too long
+                        int sWidth = (int) g.MeasureString(logs.Items[logs.Items.Count - 1].ToString(), logs.Font).Width;
+                        if (sWidth > logs.Size.Width && lastStringWidth < sWidth) {
                             logs.HorizontalExtent = sWidth;
                             lastStringWidth = sWidth;
                         }
@@ -202,53 +194,47 @@ namespace RedundantFileRemover {
             }
 
             if (searchEmptyFolders.Checked) {
-                foreach (DirectoryInfo dInfo in FileUtils.GetFiles(directoryInfo, "*", true)) {
+                foreach (FileSystemInfo fileSystemInfo in collectedDirs) {
                     if (paused) {
                         break;
+                    }
+
+                    if (fileSystemInfo is not DirectoryInfo dInfo) {
+                        continue;
+                    }
+
+                    if (FileUtils.IsFileHasAttribute(dInfo, FileAttributes.System, FileAttributes.Hidden) || settings.IsDirectoryInIgnoredList(dInfo.FullName)) {
+                        continue; // There are chances when files attributes are changed during search
                     }
 
                     if (waitingWindow != null && !waitingWindow.IsDisposed) {
                         waitingWindow.Dispose();
                         waitingWindow.Close();
+                        Enabled = true;
                     }
 
-                    if (ErrorViewer.errorLogs.TextLength > 0 && !showErrors.Enabled) {
-                        showErrors.Enabled = FileDataReader.ProgramSettings.SettingsWindow.ErrorLogging; // Enable show errors button
-                    }
+                    try {
+                        if (Directory.Exists(dInfo.FullName) && !Directory.EnumerateFileSystemEntries(dInfo.FullName).Any()
+                                && dInfo.GetFiles().Length == 0 && dInfo.GetDirectories().Length == 0) {
+                            emptyDirectories.Add(dInfo);
+                            removedAmount.Text = emptyDirectories.Count + " empty folders" + (searchEmptyFiles.Checked ? ", " + emptyFilesList.Count + " empty files" : "");
 
-                    lock (obj) {
-                        if (!FileUtils.IsFileNotHidden(dInfo) || settings.IsDirectoryInIgnoredList(dInfo.FullName)) {
-                            continue;
-                        }
-
-                        if (!onlyFoundFiles.Checked) {
                             logs.Items.Add(dInfo.FullName);
-                        }
 
-                        try {
-                            if (dInfo.Exists && !Directory.EnumerateFileSystemEntries(dInfo.FullName).Any() && dInfo.GetFiles().Length == 0 && dInfo.GetDirectories().Length == 0) {
-                                emptyDirectories.Add(dInfo);
-                                removedAmount.Text = emptyDirectories.Count + " empty folders" + (searchEmptyFiles.Checked ? ", " + emptyFilesList.Count + " empty files" : "");
-
-                                if (onlyFoundFiles.Checked) {
-                                    logs.Items.Add(dInfo.FullName);
-                                }
+                            // Make horizontal scroll bar if path is too long
+                            int sWidth = (int) g.MeasureString(logs.Items[logs.Items.Count - 1].ToString(), logs.Font).Width;
+                            if (sWidth > logs.Size.Width && lastStringWidth < sWidth) {
+                                logs.HorizontalExtent = sWidth;
+                                lastStringWidth = sWidth;
                             }
-                        } catch (Exception ex) {
-                            LogException(ex.Message + " " + ex.StackTrace);
-                        }
 
-                        // Change horizontal scroll bar if path is too long
-                        int sWidth = (int) g.MeasureString(dInfo.FullName, logs.Font).Width;
-                        if (sWidth > logs.Width && lastStringWidth < sWidth) {
-                            logs.HorizontalExtent = sWidth;
-                            lastStringWidth = sWidth;
+                            // Auto-scroll calculating
+                            if (autoScroll.Checked) {
+                                logs.TopIndex = logs.Items.Count - (logs.Height / logs.ItemHeight + 2); // + 2 to avoid "fast flickering"
+                            }
                         }
-
-                        // Auto-scroll calculating
-                        if (autoScroll.Checked) {
-                            logs.TopIndex = logs.Items.Count - (logs.Height / logs.ItemHeight + 2); // + 2 to avoid "fast flickering"
-                        }
+                    } catch (Exception ex) {
+                        LogException(ex.Message + " " + ex.StackTrace);
                     }
 
                     await DoAsync(5);
@@ -258,6 +244,7 @@ namespace RedundantFileRemover {
             if (waitingWindow != null && !waitingWindow.IsDisposed) {
                 waitingWindow.Dispose();
                 waitingWindow.Close();
+                Enabled = true;
             }
 
             if (!paused && emptyFilesList.Count == 0 && emptyDirectories.Count == 0) {
@@ -277,12 +264,11 @@ namespace RedundantFileRemover {
                 clearButton.Enabled = true;
             }
 
-            logs.SelectionMode = SelectionMode.One;
+            logs.SelectionMode = SelectionMode.MultiExtended;
             UseWaitCursor = false;
             searchButton.Enabled = true;
             settingsMenu.Enabled = true;
             browseButton.Enabled = true;
-            onlyFoundFiles.Enabled = true;
             searchEmptyFolders.Enabled = true;
             searchEmptyFiles.Enabled = true;
             patternFileTypes.Enabled = true;
@@ -303,12 +289,14 @@ namespace RedundantFileRemover {
             clearButton.Enabled = false;
             removeAll.Enabled = false;
             removedAmount.Text = "";
-            logs.HorizontalExtent = 1; // Reset horizontal scroll bar to default value
+            logs.HorizontalExtent = 0; // Reset horizontal scroll bar to default value
         }
 
         private void removeAll_Click(object sender, EventArgs e) {
+            bool moveFilesToRecycleBin = FileDataReader.ProgramSettings.SettingsWindow.MoveFileToRecycleBin;
+
             DialogResult result = MessageBox.Show("Are you sure that you want to remove all files?" + nl + nl
-                + "Selected action: " + (FileDataReader.ProgramSettings.SettingsWindow.MoveFileToRecycleBin ? "Move to recycle bin" : "Remove entirely"),
+                + "Selected action: " + (moveFilesToRecycleBin ? "Move to recycle bin" : "Remove entirely"),
                 "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
             if (result != DialogResult.Yes) {
                 return;
@@ -317,10 +305,10 @@ namespace RedundantFileRemover {
             removedFilesList.Visible = true;
 
             emptyFilesList.ForEach(file => {
-                if (file.Exists && file.Length <= 0) {
+                if (File.Exists(file.FullName) && file.Length <= 0 && !FileUtils.IsFileLocked(file.FullName)) {
                     try {
-                        if (FileDataReader.ProgramSettings.SettingsWindow.MoveFileToRecycleBin) {
-                            file.MoveTo(@"C:\$Recycle.Bin");
+                        if (moveFilesToRecycleBin) {
+                            FileSystem.DeleteFile(file.FullName, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin, UICancelOption.ThrowException);
                         } else {
                             file.Delete();
                         }
@@ -329,25 +317,25 @@ namespace RedundantFileRemover {
                         return;
                     }
 
-                    removedFilesList.AppendText("File removed: " + file.FullName);
+                    removedFilesList.AppendText("File " + (moveFilesToRecycleBin ? "moved to recycle bin" : "removed") + ": " + file.FullName);
                     removedFilesList.AppendText(nl);
                 }
             });
 
             emptyDirectories.ForEach(dir => {
-                if (dir.Exists && dir.GetFiles().Length == 0 && dir.GetDirectories().Length == 0) {
+                if (Directory.Exists(dir.FullName) && dir.GetFiles().Length == 0 && dir.GetDirectories().Length == 0) {
                     try {
-                        if (FileDataReader.ProgramSettings.SettingsWindow.MoveFileToRecycleBin) {
-                            dir.MoveTo(@"C:\$Recycle.Bin");
+                        if (moveFilesToRecycleBin) {
+                            FileSystem.DeleteDirectory(dir.FullName, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin, UICancelOption.ThrowException);
                         } else {
-                            dir.Delete();
+                            dir.Delete(false);
                         }
                     } catch (Exception ex) {
                         LogException(ex.Message + " " + ex.StackTrace);
                         return;
                     }
 
-                    removedFilesList.AppendText("Directory removed: " + dir.FullName);
+                    removedFilesList.AppendText("Directory " + (moveFilesToRecycleBin ? "moved to recycle bin" : "removed") + ": " + dir.FullName);
                     removedFilesList.AppendText(nl);
                 }
             });
@@ -391,7 +379,9 @@ namespace RedundantFileRemover {
             ContextMenuStrip cms = new ContextMenuStrip();
             cms.Click += OnLogsFilesBoxClicked;
 
-            cms.Items.Add("Remove");
+            cms.Items.Add("Move to recycle bin");
+            cms.Items.Add(logs.SelectedItems.Count == 1 ? "Remove" : "Remove all selected ones");
+            cms.Items.Add("Add directory to ignore list");
             cms.Items.Add("Open in file explorer");
 
             if (sender is Control control) {
@@ -406,44 +396,80 @@ namespace RedundantFileRemover {
                 ContextMenuStrip cms = sender as ContextMenuStrip;
                 object selectedItem = logs.SelectedItem;
 
-                var toolStripItem = cms?.GetItemAt(mouse.Location);
-                if (toolStripItem != null) {
-                    if (toolStripItem.Text == "Open in file explorer") {
-                        try {
-                            string si = selectedItem.ToString();
-                            System.Diagnostics.Process.Start("explorer.exe", File.Exists(si) ? new FileInfo(si).DirectoryName : si);
-                        } catch (Exception ex) {
-                            LogException(ex.Message + " " + ex.StackTrace);
-                            MessageBox.Show("File not found", "The file to open does not exist: " + ex.Message, MessageBoxButtons.OK);
-                        }
-                    } else if (toolStripItem.Text == "Remove") {
-                        logs.Items.Remove(selectedItem);
+                try {
+                    var toolStripItem = cms?.GetItemAt(mouse.Location);
+                    if (toolStripItem != null) {
+                        if (toolStripItem.Text == "Open in file explorer") {
+                            try {
+                                string si = selectedItem.ToString();
+                                System.Diagnostics.Process.Start("explorer.exe", File.Exists(si) ? new FileInfo(si).DirectoryName : si);
+                            } catch (Exception ex) {
+                                LogException(ex.Message + " " + ex.StackTrace);
+                                MessageBox.Show("File not found", "The file to open does not exist: " + ex.Message, MessageBoxButtons.OK);
+                            }
+                        } else if (toolStripItem.Text == "Remove" || toolStripItem.Text == "Remove all selected ones" || toolStripItem.Text == "Move to recycle bin") {
+                            RecycleOption recycleOption = toolStripItem.Text.Contains("Remove") ? RecycleOption.DeletePermanently : RecycleOption.SendToRecycleBin;
 
-                        string si = selectedItem.ToString();
-                        if (Directory.Exists(si)) {
-                            Directory.Delete(si, true);
-                        } else if (File.Exists(si)) {
-                            File.Delete(si);
+                            if (logs.SelectedItems.Count > 1 && toolStripItem.Text == "Remove all selected ones") {
+                                foreach (var item in logs.SelectedItems) {
+                                    string si = item.ToString();
+
+                                    try {
+                                        if (Directory.Exists(si)) {
+                                            FileSystem.DeleteDirectory(si, UIOption.OnlyErrorDialogs, recycleOption, UICancelOption.ThrowException);
+                                        } else if (File.Exists(si)) {
+                                            FileSystem.DeleteFile(si, UIOption.OnlyErrorDialogs, recycleOption, UICancelOption.ThrowException);
+                                        }
+                                    } catch (Exception ex) {
+                                        LogException(ex.Message + " " + ex.StackTrace);
+                                    }
+                                }
+
+                                for (int i = logs.SelectedIndices.Count - 1; i >= 0; i--) {
+                                    logs.Items.RemoveAt(logs.SelectedIndices[i]);
+                                }
+                            } else {
+                                string si = selectedItem.ToString();
+                                if (Directory.Exists(si)) {
+                                    FileSystem.DeleteDirectory(si, UIOption.OnlyErrorDialogs, recycleOption, UICancelOption.ThrowException);
+                                } else if (File.Exists(si)) {
+                                    FileSystem.DeleteFile(si, UIOption.OnlyErrorDialogs, recycleOption, UICancelOption.ThrowException);
+                                }
+
+                                logs.Items.Remove(selectedItem);
+                            }
+                        } else if (toolStripItem.Text == "Add directory to ignore list") {
+                            string directory = selectedItem.ToString();
+                            if (File.Exists(directory)) {
+                                directory = new FileInfo(directory).DirectoryName;
+                            }
+
+                            if (Directory.Exists(directory)) {
+                                FileDataReader.ProgramSettings.SettingsWindow.IgnoredDirectories.Add(directory);
+                            }
                         }
                     }
+                } catch (Exception exc) {
+                    LogException(exc.Message + " " + exc.StackTrace);
                 }
 
                 if (cms != null) {
                     cms.Close();
                 }
-
-                logs.SelectedItems.Clear();
             }
+
+            logs.ClearSelected();
         }
 
-        public static bool LogException(string s) {
-            if (!FileDataReader.ProgramSettings.SettingsWindow.ErrorLogging || string.IsNullOrWhiteSpace(s)) {
-                return false;
+        public static void LogException(string s) {
+            if (!FileDataReader.ProgramSettings.SettingsWindow.ErrorLogging || string.IsNullOrWhiteSpace(s) || ActiveForm == null) {
+                return;
             }
 
-            ErrorViewer.errorLogs.AppendText(s);
-            ErrorViewer.errorLogs.AppendText(nl + nl);
-            return true;
+            ActiveForm.Invoke((MethodInvoker) delegate {
+                ErrorViewer.errorLogs.AppendText(s);
+                ErrorViewer.errorLogs.AppendText(nl + nl);
+            });
         }
 
         private async Task DoAsync(int ms) {

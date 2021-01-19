@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace RedundantFileRemover {
@@ -10,16 +11,22 @@ namespace RedundantFileRemover {
         public SettingsForm() {
             InitializeComponent();
 
+            Load += new EventHandler(SettingsForm_Load);
             FormClosing += new FormClosingEventHandler(SettingsForm_FormClosing);
             Application.ApplicationExit += new EventHandler(SettingsForm_FormExit);
+        }
 
+        void SettingsForm_Load(object sender, EventArgs e) {
             #region Load saved data into memory
             searchInSubDirs.Checked = FileDataReader.ProgramSettings.SettingsWindow.SearchInSubDirectories;
             errorLogging.Checked = FileDataReader.ProgramSettings.SettingsWindow.ErrorLogging;
             alwaysClearLogs.Checked = FileDataReader.ProgramSettings.SettingsWindow.AlwaysClearLogs;
             moveFilesToBin.Checked = FileDataReader.ProgramSettings.SettingsWindow.MoveFileToRecycleBin;
 
-            FileDataReader.ProgramSettings.SettingsWindow.IgnoredDirectories.ForEach(a => filterList.Items.Add(a));
+            filterList.Items.Clear();
+            FileDataReader.ProgramSettings.SettingsWindow.IgnoredDirectories.Where(dir => dir != "")
+                .Where(d => !d.Contains(FileDataReader.ProgramSettings.MainWindow.FolderPath))
+                .Distinct().ToList().ForEach(a => filterList.Items.Add(a));
             #endregion
 
             if (filterList.Items.Count > 0) {
@@ -34,10 +41,8 @@ namespace RedundantFileRemover {
             if (Owner is RedundantFileRemover rfr) {
                 if (!errorLogging.Checked) {
                     rfr.showErrors.Enabled = false;
-                }
-
-                if (errorLogging.Checked && !rfr.showErrors.Visible) {
-                    rfr.showErrors.Visible = true;
+                } else {
+                    rfr.showErrors.Visible = rfr.showErrors.Enabled = true;
                 }
             }
         }
@@ -72,7 +77,7 @@ namespace RedundantFileRemover {
                 }
 
                 if (Owner is RedundantFileRemover main && selectedPath == main.folderPath.Text) {
-                    error.Text = "Error: The path can't be the same with the selected folder.";
+                    error.Text = "Error: The path can't be the same with the selected folder!";
                     return;
                 }
 
@@ -82,6 +87,8 @@ namespace RedundantFileRemover {
                 FileDataReader.ProgramSettings.SettingsWindow.IgnoredDirectories.Add(selectedPath);
                 removeFilters.Enabled = true;
             }
+
+            dialog.Dispose();
         }
 
         private void removeFilters_Click(object sender, EventArgs e) {
@@ -99,7 +106,7 @@ namespace RedundantFileRemover {
                     FileDataReader.ProgramSettings.SettingsWindow.IgnoredDirectories.Remove(item);
                 }
 
-                filterList.SelectedItems.Clear();
+                filterList.ClearSelected();
             }
 
             if (filterList.Items.Count == 0) {
@@ -130,8 +137,6 @@ namespace RedundantFileRemover {
                 ContextMenuStrip cms = sender as ContextMenuStrip;
                 object selectedItem = filterList.SelectedItem;
 
-                filterList.Items.Remove(selectedItem);
-
                 var toolStripItem = cms?.GetItemAt(mouse.Location);
                 if (toolStripItem != null) {
                     if (toolStripItem.Text == "Open in file explorer") {
@@ -143,6 +148,7 @@ namespace RedundantFileRemover {
                         }
                     } else if (toolStripItem.Text == "Remove from list") {
                         FileDataReader.ProgramSettings.SettingsWindow.IgnoredDirectories.Remove(selectedItem.ToString());
+                        filterList.Items.Remove(selectedItem);
                     }
                 }
 
@@ -153,9 +159,9 @@ namespace RedundantFileRemover {
                 if (cms != null) {
                     cms.Close();
                 }
-
-                filterList.SelectedItems.Clear();
             }
+
+            filterList.ClearSelected();
         }
 
         private void errorLoggingEnabled_CheckedChanged(object sender, EventArgs e) {

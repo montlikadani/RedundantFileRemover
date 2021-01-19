@@ -3,28 +3,46 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace RedundantFileRemover {
     static class FileUtils {
 
         private static readonly List<FileSystemInfo> accessibleFiles = new List<FileSystemInfo>();
 
-        public static bool IsFileNotHidden(FileSystemInfo fileSystemInfo) {
-            return fileSystemInfo.Attributes != FileAttributes.Hidden && fileSystemInfo.Attributes != FileAttributes.System;
-        }
-
-        public static List<FileSystemInfo> GetFiles(DirectoryInfo directoryInfo, string searchPattern, bool isDir) {
-            accessibleFiles.Clear();
-
-            if (!isDir && searchPattern.Contains("|")) {
-                foreach (string sp in searchPattern.Split('|')) {
-                    CollectAccessibleFiles(directoryInfo, sp, isDir);
+        public static bool IsFileHasAttribute(FileSystemInfo fileSystemInfo, params FileAttributes[] array) {
+            foreach (FileAttributes attr in array) {
+                if (fileSystemInfo.Attributes.HasFlag(attr)) {
+                    return true;
                 }
-
-                return accessibleFiles;
             }
 
-            CollectAccessibleFiles(directoryInfo, searchPattern, isDir);
+            return false;
+        }
+
+        public static bool IsFileLocked(string path) {
+            try {
+                using (File.Open(path, FileMode.Open)) {
+                    return false;
+                }
+            } catch (IOException) { // Locked file
+                return true;
+            }
+        }
+
+        public static async Task<List<FileSystemInfo>> GetFiles(DirectoryInfo directoryInfo, string searchPattern, bool isDir) {
+            accessibleFiles.Clear();
+
+            await Task.Run(() => {
+                if (!isDir && searchPattern.Contains("|")) {
+                    foreach (string sp in searchPattern.Split('|')) {
+                        CollectAccessibleFiles(directoryInfo, sp, isDir);
+                    }
+                } else {
+                    CollectAccessibleFiles(directoryInfo, searchPattern, isDir);
+                }
+            });
+
             return accessibleFiles;
         }
 
@@ -32,34 +50,35 @@ namespace RedundantFileRemover {
             try {
                 var directories = directoryInfo.EnumerateDirectories()
                     .Where(d => !d.FullName.Replace(" ", "").Contains("RedundantFileRemover"))
-                    .Where(d => IsNotSpecialFolder(d.Name))
-                    .Where(d => IsFileNotHidden(d)).ToArray();
+                    .Where(d => !IsFileHasAttribute(d, FileAttributes.System)).ToArray();
 
                 if (isDir) {
                     for (int i = 0; i < directories.Length; i++) {
-                        if (directories[i].Exists) {
-                            try {
-                                var dirInfo = directories.ElementAt(i);
-                                accessibleFiles.Add(dirInfo);
+                        try {
+                            var dirInfo = directories.ElementAt(i);
 
-                                if (FileDataReader.ProgramSettings.SettingsWindow.SearchInSubDirectories) {
-                                    CollectAccessibleFiles(dirInfo, sp, isDir);
-                                }
-                            } catch (Exception ex) {
-                                RedundantFileRemover.LogException(ex.Message + " " + ex.StackTrace);
+                            if (Directory.Exists(dirInfo.FullName) && !Directory.EnumerateFileSystemEntries(dirInfo.FullName).Any()) {
+                                accessibleFiles.Add(dirInfo);
                             }
+
+                            if (FileDataReader.ProgramSettings.SettingsWindow.SearchInSubDirectories) {
+                                CollectAccessibleFiles(dirInfo, sp, isDir);
+                            }
+                        } catch (Exception ex) {
+                            RedundantFileRemover.LogException(ex.Message + " " + ex.StackTrace);
                         }
                     }
                 } else {
                     for (int i = 0; i < directories.Length; i++) {
                         try {
-                            if (!directories.ElementAt(i).Exists) {
+                            if (!Directory.Exists(directories.ElementAt(i).FullName)) {
                                 continue;
                             }
 
-                            foreach (FileInfo fileInfo in directories[i].GetFiles('*' + sp)) {
+                            foreach (FileInfo fileInfo in directories[i].GetFiles('*' + sp).Where(file => file.Name.ToLower().EndsWith(sp))) {
                                 try {
-                                    if (fileInfo.Exists && IsFileNotHidden(fileInfo)) {
+                                    if (File.Exists(fileInfo.FullName) && !IsFileHasAttribute(fileInfo, FileAttributes.Hidden, FileAttributes.System)
+                                        && !IsFileLocked(fileInfo.FullName) && fileInfo.Length <= 0) {
                                         accessibleFiles.Add(fileInfo);
                                     }
                                 } catch (Exception exe) {
@@ -78,14 +97,6 @@ namespace RedundantFileRemover {
             } catch (Exception ex) {
                 RedundantFileRemover.LogException(ex.StackTrace + " " + ex.Message);
             }
-        }
-
-        public static bool IsNotSpecialFolder(string dirName) {
-            dirName = dirName.Replace(" ", "");
-
-            return !dirName.Contains(Environment.SpecialFolder.System.ToString())
-                && !dirName.Contains(Environment.SpecialFolder.Windows.ToString())
-                && !dirName.Equals("PerfLogs");
         }
     }
 }

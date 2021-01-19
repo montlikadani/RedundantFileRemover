@@ -32,7 +32,6 @@ namespace RedundantFileRemover {
             this.stopTask = new System.Windows.Forms.Button();
             this.clearButton = new System.Windows.Forms.Button();
             this.removeAll = new System.Windows.Forms.Button();
-            this.onlyFoundFiles = new System.Windows.Forms.CheckBox();
             this.searchEmptyFolders = new System.Windows.Forms.CheckBox();
             this.removedAmount = new System.Windows.Forms.Label();
             this.searchEmptyFiles = new System.Windows.Forms.CheckBox();
@@ -79,7 +78,7 @@ namespace RedundantFileRemover {
             // searchButton
             // 
             this.searchButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
-            this.searchButton.Location = new System.Drawing.Point(918, 107);
+            this.searchButton.Location = new System.Drawing.Point(919, 130);
             this.searchButton.Name = "searchButton";
             this.searchButton.Size = new System.Drawing.Size(101, 31);
             this.searchButton.TabIndex = 4;
@@ -91,7 +90,7 @@ namespace RedundantFileRemover {
             // 
             this.stopTask.Enabled = false;
             this.stopTask.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
-            this.stopTask.Location = new System.Drawing.Point(919, 146);
+            this.stopTask.Location = new System.Drawing.Point(920, 169);
             this.stopTask.Name = "stopTask";
             this.stopTask.Size = new System.Drawing.Size(101, 31);
             this.stopTask.TabIndex = 9;
@@ -103,7 +102,7 @@ namespace RedundantFileRemover {
             // 
             this.clearButton.Enabled = false;
             this.clearButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
-            this.clearButton.Location = new System.Drawing.Point(813, 496);
+            this.clearButton.Location = new System.Drawing.Point(813, 543);
             this.clearButton.Name = "clearButton";
             this.clearButton.Size = new System.Drawing.Size(101, 31);
             this.clearButton.TabIndex = 10;
@@ -115,7 +114,7 @@ namespace RedundantFileRemover {
             // 
             this.removeAll.Enabled = false;
             this.removeAll.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
-            this.removeAll.Location = new System.Drawing.Point(919, 183);
+            this.removeAll.Location = new System.Drawing.Point(920, 206);
             this.removeAll.Name = "removeAll";
             this.removeAll.Size = new System.Drawing.Size(103, 33);
             this.removeAll.TabIndex = 11;
@@ -123,22 +122,12 @@ namespace RedundantFileRemover {
             this.removeAll.UseVisualStyleBackColor = true;
             this.removeAll.Click += new System.EventHandler(this.removeAll_Click);
             // 
-            // onlyFoundFiles
-            // 
-            this.onlyFoundFiles.AutoSize = true;
-            this.onlyFoundFiles.Location = new System.Drawing.Point(26, 69);
-            this.onlyFoundFiles.Name = "onlyFoundFiles";
-            this.onlyFoundFiles.Size = new System.Drawing.Size(140, 19);
-            this.onlyFoundFiles.TabIndex = 12;
-            this.onlyFoundFiles.Text = "Print only found files";
-            this.onlyFoundFiles.UseVisualStyleBackColor = true;
-            // 
             // searchEmptyFolders
             // 
             this.searchEmptyFolders.AutoSize = true;
             this.searchEmptyFolders.Checked = true;
             this.searchEmptyFolders.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.searchEmptyFolders.Location = new System.Drawing.Point(336, 69);
+            this.searchEmptyFolders.Location = new System.Drawing.Point(26, 69);
             this.searchEmptyFolders.Name = "searchEmptyFolders";
             this.searchEmptyFolders.Size = new System.Drawing.Size(145, 19);
             this.searchEmptyFolders.TabIndex = 13;
@@ -159,7 +148,7 @@ namespace RedundantFileRemover {
             this.searchEmptyFiles.AutoSize = true;
             this.searchEmptyFiles.Checked = true;
             this.searchEmptyFiles.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.searchEmptyFiles.Location = new System.Drawing.Point(336, 94);
+            this.searchEmptyFiles.Location = new System.Drawing.Point(26, 94);
             this.searchEmptyFiles.Name = "searchEmptyFiles";
             this.searchEmptyFiles.Size = new System.Drawing.Size(128, 19);
             this.searchEmptyFiles.TabIndex = 21;
@@ -169,9 +158,9 @@ namespace RedundantFileRemover {
             // 
             // patternFileTypes
             // 
-            this.patternFileTypes.Location = new System.Drawing.Point(478, 94);
+            this.patternFileTypes.Location = new System.Drawing.Point(168, 94);
             this.patternFileTypes.Name = "patternFileTypes";
-            this.patternFileTypes.Size = new System.Drawing.Size(100, 23);
+            this.patternFileTypes.Size = new System.Drawing.Size(140, 23);
             this.patternFileTypes.TabIndex = 22;
             this.patternFileTypes.Text = ".ini, .log, .txt";
             this.patternFileTypes.TextChanged += new System.EventHandler(this.patternFileTypes_TextChanged);
@@ -204,7 +193,7 @@ namespace RedundantFileRemover {
             // showErrors
             // 
             this.showErrors.Enabled = false;
-            this.showErrors.Location = new System.Drawing.Point(918, 223);
+            this.showErrors.Location = new System.Drawing.Point(919, 246);
             this.showErrors.Name = "showErrors";
             this.showErrors.Size = new System.Drawing.Size(104, 30);
             this.showErrors.TabIndex = 23;
@@ -221,13 +210,14 @@ namespace RedundantFileRemover {
             this.logs.ItemHeight = 15;
             this.logs.Location = new System.Drawing.Point(26, 167);
             this.logs.Name = "logs";
+            this.logs.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.logs.Size = new System.Drawing.Size(884, 319);
             this.logs.TabIndex = 25;
             this.logs.MouseDown += new System.Windows.Forms.MouseEventHandler(this.logsFilesBox_MouseDown);
             // 
             // removedFilesList
             // 
-            this.removedFilesList.Location = new System.Drawing.Point(26, 496);
+            this.removedFilesList.Location = new System.Drawing.Point(26, 543);
             this.removedFilesList.Multiline = true;
             this.removedFilesList.Name = "removedFilesList";
             this.removedFilesList.ReadOnly = true;
@@ -252,7 +242,7 @@ namespace RedundantFileRemover {
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
             this.AutoValidate = System.Windows.Forms.AutoValidate.EnableAllowFocusChange;
-            this.ClientSize = new System.Drawing.Size(1169, 588);
+            this.ClientSize = new System.Drawing.Size(1071, 635);
             this.Controls.Add(this.autoScroll);
             this.Controls.Add(this.removedFilesList);
             this.Controls.Add(this.logs);
@@ -261,7 +251,6 @@ namespace RedundantFileRemover {
             this.Controls.Add(this.searchEmptyFiles);
             this.Controls.Add(this.removedAmount);
             this.Controls.Add(this.searchEmptyFolders);
-            this.Controls.Add(this.onlyFoundFiles);
             this.Controls.Add(this.removeAll);
             this.Controls.Add(this.clearButton);
             this.Controls.Add(this.stopTask);
@@ -290,7 +279,6 @@ namespace RedundantFileRemover {
         private System.Windows.Forms.Button stopTask;
         private System.Windows.Forms.Button clearButton;
         private System.Windows.Forms.Button removeAll;
-        private System.Windows.Forms.CheckBox onlyFoundFiles;
         private System.Windows.Forms.CheckBox searchEmptyFolders;
         private System.Windows.Forms.Label removedAmount;
         private System.Windows.Forms.CheckBox searchEmptyFiles;

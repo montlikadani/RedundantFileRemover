@@ -34,6 +34,7 @@ namespace RedundantFileRemover.UserSettingsData {
                         ps = new DeserializerBuilder().IgnoreUnmatchedProperties().Build().Deserialize<ProgramSettings>(reader);
                     }
                 } catch (Exception) {
+                    // Apply default values
                 }
             }
         }
@@ -59,7 +60,6 @@ namespace RedundantFileRemover.UserSettingsData {
 
             var mainNode = new YamlMappingNode {
                 { "FolderPath", ps.MainWindow.FolderPath },
-                { "PrintOnlyFoundFiles", ps.MainWindow.PrintOnlyFoundFiles.ToString().ToLower() },
                 { "SearchEmptyFolders", ps.MainWindow.SearchEmptyFolders.ToString().ToLower() },
                 { "SearchEmptyFiles", ps.MainWindow.SearchEmptyFiles.ToString().ToLower() },
                 { "PatternFileTypes", ps.MainWindow.PatternFileTypes },
@@ -69,7 +69,8 @@ namespace RedundantFileRemover.UserSettingsData {
             var idList = new YamlSequenceNode {
                 Style = SequenceStyle.Block
             };
-            ps.SettingsWindow.IgnoredDirectories.Where(dir => dir != "").ToList().ForEach(id => idList.Add(id));
+            ps.SettingsWindow.IgnoredDirectories.Where(dir => dir != "")
+                .Where(d => !d.Contains(ps.MainWindow.FolderPath)).Distinct().ToList().ForEach(id => idList.Add(id));
 
             var settingsNode = new YamlMappingNode {
                 { "SearchInSubDirectories", ps.SettingsWindow.SearchInSubDirectories.ToString().ToLower() },
@@ -101,8 +102,6 @@ namespace RedundantFileRemover.UserSettingsData {
     public class MainWindow {
 
         public string FolderPath { get; set; } = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-
-        public bool PrintOnlyFoundFiles { get; set; } = false;
 
         public bool SearchEmptyFolders { get; set; } = true;
 

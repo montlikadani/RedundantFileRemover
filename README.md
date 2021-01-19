@@ -1,4 +1,4 @@
-# RedundantFileRemover
+# RedundantFileRemover [![Github All Releases](https://img.shields.io/github/downloads/montlikadani/RedundantFileRemover/total.svg)](https://github.com/montlikadani/RedundantFileRemover/releases)
 Does your system is filled with empty directory or files which is unneeded? With this you can remove it.
 
 _This is the first C# project I created in December 2020 in my boredom._
@@ -26,3 +26,4 @@ Any changes are welcome in [Pull Request](https://docs.github.com/en/free-pro-te
 **Requirements**
 - .NET framework 4.8
 - Windows forms
+- C# 9.0
