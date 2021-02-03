@@ -50,7 +50,11 @@ namespace RedundantFileRemover {
         void SettingsForm_FormExit(object sender, EventArgs e) {
             FileDataReader.ProgramSettings.SettingsWindow.ErrorLogging = errorLogging.Checked;
             FileDataReader.ProgramSettings.SettingsWindow.SearchInSubDirectories = searchInSubDirs.Checked;
-            FileDataReader.ProgramSettings.SettingsWindow.IgnoredDirectories.AddRange(filterList.Text.Split('\n'));
+
+            foreach (var item in filterList.Items) {
+                FileDataReader.ProgramSettings.SettingsWindow.IgnoredDirectories.Add(item.ToString());
+            }
+
             FileDataReader.ProgramSettings.SettingsWindow.AlwaysClearLogs = alwaysClearLogs.Checked;
             FileDataReader.ProgramSettings.SettingsWindow.MoveFileToRecycleBin = moveFilesToBin.Checked;
         }
@@ -115,7 +119,13 @@ namespace RedundantFileRemover {
         }
 
         private void filterList_MouseDown(object sender, MouseEventArgs e) {
-            if (filterList.SelectedItems.Count == 0 || e.Button != MouseButtons.Right) {
+            filterList.ContextMenuStrip = null;
+
+            if (e.Button.HasFlag(MouseButtons.Left) && filterList.IndexFromPoint(e.Location) == -1) {
+                filterList.ClearSelected();
+            }
+
+            if (filterList.SelectedItems.Count == 0 || !e.Button.HasFlag(MouseButtons.Right)) {
                 return;
             }
 
@@ -133,7 +143,7 @@ namespace RedundantFileRemover {
         }
 
         private void OnFilterListClicked(object sender, EventArgs e) {
-            if (e is MouseEventArgs mouse && mouse.Button == MouseButtons.Left && filterList.SelectedItems.Count > 0) {
+            if (e is MouseEventArgs mouse && mouse.Button.HasFlag(MouseButtons.Left) && filterList.SelectedItems.Count > 0) {
                 ContextMenuStrip cms = sender as ContextMenuStrip;
                 object selectedItem = filterList.SelectedItem;
 

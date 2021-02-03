@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace RedundantFileRemover {
     static class FileUtils {
@@ -52,12 +53,16 @@ namespace RedundantFileRemover {
                     .Where(d => !d.FullName.Replace(" ", "").Contains("RedundantFileRemover"))
                     .Where(d => !IsFileHasAttribute(d, FileAttributes.System)).ToArray();
 
+                RedundantFileRemover.ChangeProgressBar(accessibleFiles.Count);
+
                 if (isDir) {
                     for (int i = 0; i < directories.Length; i++) {
                         try {
                             var dirInfo = directories.ElementAt(i);
 
-                            if (Directory.Exists(dirInfo.FullName) && !Directory.EnumerateFileSystemEntries(dirInfo.FullName).Any()) {
+                            if (Directory.Exists(dirInfo.FullName) && !Directory.EnumerateFileSystemEntries(dirInfo.FullName).Any()
+                                && !IsFileHasAttribute(dirInfo, FileAttributes.Hidden, FileAttributes.System)
+                                        && !IsFileLocked(dirInfo.FullName)) {
                                 accessibleFiles.Add(dirInfo);
                             }
 

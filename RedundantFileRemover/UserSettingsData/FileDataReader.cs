@@ -21,7 +21,7 @@ namespace RedundantFileRemover.UserSettingsData {
                 Directory.CreateDirectory(appPath);
             }
 
-            DeleteTempFolderContent(new DirectoryInfo(Path.GetTempPath()));
+            DeleteTempFolderContent();
 
             fi = new FileInfo(appPath + @"\userConfigData.yml");
             if (!fi.Exists) {
@@ -40,8 +40,8 @@ namespace RedundantFileRemover.UserSettingsData {
         }
 
         // Remove temporary file
-        private void DeleteTempFolderContent(DirectoryInfo tempDir) {
-            var any = tempDir.EnumerateDirectories().Where(d => d.Name == "RedundantFileRemover");
+        private void DeleteTempFolderContent() {
+            var any = new DirectoryInfo(Path.GetTempPath()).EnumerateDirectories().Where(d => d.Name == "RedundantFileRemover");
             if (any.Any()) {
                 any.First().Delete(true);
             }
