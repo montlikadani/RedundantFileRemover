@@ -114,6 +114,7 @@ namespace RedundantFileRemover {
             if (!waitingWindow.IsDisposed) {
                 waitingWindow.Dispose();
                 waitingWindow.Close();
+                Focus(); // Get focus on main window
             }
 
             Enabled = true;
@@ -332,6 +333,7 @@ namespace RedundantFileRemover {
             cms.Items.Add(logs.SelectedItems.Count == 1 ? "Remove" : "Remove all selected ones");
             cms.Items.Add("Add directory to ignore list");
             cms.Items.Add("Open in file explorer");
+            cms.Items.Add("Hide from list");
 
             if (sender is Control control) {
                 cms.Show(this, new Point(e.X + control.Left, e.Y + control.Top));
@@ -392,8 +394,7 @@ namespace RedundantFileRemover {
                                 emptyFilesList.Clear();
                                 emptyDirectories.Clear();
 
-                                removeAll.Enabled = false;
-                                clearButton.Enabled = false;
+                                removeAll.Enabled = clearButton.Enabled = false;
                                 removedAmount.Text = "";
                             }
                         } else if (toolStripItem.Text == "Add directory to ignore list") {
@@ -404,6 +405,22 @@ namespace RedundantFileRemover {
 
                             if (Directory.Exists(directory)) {
                                 FileDataReader.ProgramSettings.SettingsWindow.IgnoredDirectories.Add(directory);
+                            }
+                        } else if (toolStripItem.Text == "Hide from list") {
+                            string name = selectedItem.ToString();
+
+                            int amount = 0;
+                            if ((amount = emptyFilesList.RemoveAll(fInfo => fInfo.FullName.Equals(name))) == 0) {
+                                amount = emptyDirectories.RemoveAll(dInfo => dInfo.FullName.Equals(name));
+                            }
+
+                            if (amount > 0) {
+                                logs.Items.Remove(selectedItem);
+
+                                if (logs.Items.Count == 0) {
+                                    removeAll.Enabled = clearButton.Enabled = false;
+                                    removedAmount.Text = "";
+                                }
                             }
                         }
                     }
