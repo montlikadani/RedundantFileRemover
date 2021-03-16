@@ -115,6 +115,12 @@
     </Compile>
     <Compile Include="Utils\StringUtils.cs" />
     <Compile Include="UserSettingsData\FileDataReader.cs" />
+    <Compile Include="WaitingWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="WaitingWindow.Designer.cs">
+      <DependentUpon>WaitingWindow.cs</DependentUpon>
+    </Compile>
     <EmbeddedResource Include="ErrorViewer.resx">
       <DependentUpon>ErrorViewer.cs</DependentUpon>
     </EmbeddedResource>
@@ -133,6 +139,9 @@
     </Compile>
     <EmbeddedResource Include="SettingsForm.resx">
       <DependentUpon>SettingsForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="WaitingWindow.resx">
+      <DependentUpon>WaitingWindow.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">

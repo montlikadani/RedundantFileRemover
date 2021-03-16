@@ -12,7 +12,7 @@ namespace RedundantFileRemover.UserSettingsData {
         private readonly FileInfo fi;
         public FileInfo DataFile => fi;
 
-        private static ProgramSettings ps = new ProgramSettings();
+        private static ProgramSettings ps = new();
         public static ProgramSettings ProgramSettings => ps;
 
         public FileDataReader() {

@@ -11,14 +11,13 @@ using Microsoft.VisualBasic.FileIO;
 namespace RedundantFileRemover {
     public partial class RedundantFileRemover : Form {
 
-        private bool paused = false;
-
-        private readonly SettingsForm settings = new SettingsForm();
+        private readonly SettingsForm settings = new();
 
         public static ErrorViewer ErrorViewer { get; } = new ErrorViewer();
+        public static bool TerminateRequested { get; set; } = false;
 
-        private readonly List<DirectoryInfo> emptyDirectories = new List<DirectoryInfo>();
-        private readonly List<FileInfo> emptyFilesList = new List<FileInfo>();
+        private readonly List<DirectoryInfo> emptyDirectories = new();
+        private readonly List<FileInfo> emptyFilesList = new();
 
         private static readonly string nl = Environment.NewLine;
 
@@ -59,7 +58,7 @@ namespace RedundantFileRemover {
                 ShowNewFolderButton = false
             };
 
-            if (openFolder.ShowDialog() == DialogResult.OK) {
+            if (openFolder.ShowDialog().HasFlag(DialogResult.OK)) {
                 // Note: do not check for file attributes as on some systems, the C:\ drive have hidden attribute by default, (why?)
 
                 folderPath.Text = openFolder.SelectedPath;
@@ -81,59 +80,16 @@ namespace RedundantFileRemover {
 
             logs.Items.Clear();
 
-            Form waitingWindow = null;
-            if (directoryInfo.GetDirectories().Length > 5) {
-                waitingWindow = new Form() {
-                    Owner = this,
-                    Text = "Collecting",
-                    StartPosition = FormStartPosition.CenterScreen,
-                    ShowIcon = false,
-                    ShowInTaskbar = false,
-                    Size = new Size(450, 180),
-                    FormBorderStyle = FormBorderStyle.FixedDialog,
-                    MinimizeBox = false,
-                    MaximizeBox = false,
-                    UseWaitCursor = true,
-                    ControlBox = false // Hide every buttons from window
-                };
-
-                Label processLabel = new Label() {
-                    Text = $"Please wait until the program collects all of directories... {nl + nl}" +
-                        $"This process can take more than 30 sec depending how many files are on your drive.",
-                    Dock = DockStyle.Fill,
-                    TextAlign = ContentAlignment.MiddleCenter,
-                    Font = new Font("Microsoft JhengHei UI", 9)
-                };
-
-                waitingWindow.Controls.Add(new ProgressBar {
-                    Width = 400,
-                    Height = 20,
-                    Step = 1,
-                    Location = new Point(15, 110),
-                    Style = ProgressBarStyle.Continuous
-                });
-
-                waitingWindow.Controls.Add(processLabel);
-                waitingWindow.Show();
-
-                processLabel.Invalidate();
-                processLabel.Update();
-                processLabel.Refresh();
-                Enabled = false; // Disable main window while the waiting window is open
-            }
+            Form waitingWindow = new WaitingWindow(this);
+            waitingWindow.Show();
+            Enabled = false; // Disable main window while the waiting window is open
 
             #region Disabling and clearing some options
-            paused = false;
+            TerminateRequested = false;
             UseWaitCursor = true;
-            searchButton.Enabled = false;
-            browseButton.Enabled = false;
-            removeAll.Enabled = false;
+            searchButton.Enabled = browseButton.Enabled = removeAll.Enabled = false;
             stopTask.Enabled = true;
-            searchEmptyFolders.Enabled = false;
-            searchEmptyFiles.Enabled = false;
-            patternFileTypes.Enabled = false;
-            settingsMenu.Enabled = false;
-            clearButton.Enabled = false;
+            searchEmptyFolders.Enabled = searchEmptyFiles.Enabled = patternFileTypes.Enabled = settingsMenu.Enabled = clearButton.Enabled = false;
             logs.SelectionMode = SelectionMode.None;
             if (settings.alwaysClearLogs.Checked) {
                 ErrorViewer.errorLogs.Clear();
@@ -151,22 +107,24 @@ namespace RedundantFileRemover {
             #endregion
 
             // Wait and cache all empty files and directories into memory
-            List<FileSystemInfo> collectedFiles = searchEmptyFiles.Checked ? new List<FileSystemInfo>(await FileUtils.GetFiles(directoryInfo,
-                patternFileTypes.Text.Replace(',', '|').Replace(" ", ""), false)) : new List<FileSystemInfo>();
+            List<FileSystemInfo> collectedFiles = searchEmptyFiles.Checked ? new List<FileSystemInfo>(await FileUtils.GetFiles(directoryInfo, patternFileTypes.Text, false))
+                : new List<FileSystemInfo>();
             List<FileSystemInfo> collectedDirs = searchEmptyFolders.Checked ? await FileUtils.GetFiles(directoryInfo, "*", true) : new List<FileSystemInfo>();
 
-            if (waitingWindow != null && !waitingWindow.IsDisposed) {
+            if (!waitingWindow.IsDisposed) {
                 waitingWindow.Dispose();
                 waitingWindow.Close();
-                Enabled = true;
             }
+
+            Enabled = true;
+            TerminateRequested = false;
 
             Graphics g = logs.CreateGraphics();
             int lastStringWidth = 0;
 
             if (searchEmptyFiles.Checked) {
                 foreach (FileSystemInfo fileSystemInfo in collectedFiles) {
-                    if (paused) {
+                    if (TerminateRequested) {
                         break;
                     }
 
@@ -201,7 +159,7 @@ namespace RedundantFileRemover {
 
             if (searchEmptyFolders.Checked) {
                 foreach (FileSystemInfo fileSystemInfo in collectedDirs) {
-                    if (paused) {
+                    if (TerminateRequested) {
                         break;
                     }
 
@@ -238,10 +196,10 @@ namespace RedundantFileRemover {
                 }
             }
 
-            if (!paused && emptyFilesList.Count == 0 && emptyDirectories.Count == 0) {
-                DialogResult result = MessageBox.Show("There is no any empty " + (searchEmptyFiles.Checked ? "file " : "")
+            if (!TerminateRequested && emptyFilesList.Count == 0 && emptyDirectories.Count == 0) {
+                DialogResult result = MessageBox.Show(this, "There is no any empty " + (searchEmptyFiles.Checked ? "file " : "")
                     + (searchEmptyFolders.Checked ? "and folder " : "") + ".", "Empty directory", MessageBoxButtons.OK);
-                if (result != DialogResult.OK) {
+                if (!result.HasFlag(DialogResult.OK)) {
                     return;
                 }
             }
@@ -257,18 +215,13 @@ namespace RedundantFileRemover {
 
             logs.SelectionMode = SelectionMode.MultiExtended;
             UseWaitCursor = false;
-            searchButton.Enabled = true;
-            settingsMenu.Enabled = true;
-            browseButton.Enabled = true;
-            searchEmptyFolders.Enabled = true;
-            searchEmptyFiles.Enabled = true;
-            patternFileTypes.Enabled = true;
+            searchButton.Enabled = settingsMenu.Enabled = browseButton.Enabled = searchEmptyFolders.Enabled = searchEmptyFiles.Enabled = patternFileTypes.Enabled = true;
             stopTask.Enabled = false;
             #endregion
         }
 
         private void stopTask_Click(object sender, EventArgs e) {
-            paused = true;
+            TerminateRequested = true;
             stopTask.Enabled = false;
         }
 
@@ -276,9 +229,7 @@ namespace RedundantFileRemover {
             logs.Items.Clear();
             removedFilesList.Clear();
 
-            removedFilesList.Visible = false;
-            clearButton.Enabled = false;
-            removeAll.Enabled = false;
+            removedFilesList.Visible = clearButton.Enabled = removeAll.Enabled = false;
             removedAmount.Text = "";
             logs.HorizontalExtent = 0; // Reset horizontal scroll bar to default value
         }
@@ -289,7 +240,7 @@ namespace RedundantFileRemover {
             DialogResult result = MessageBox.Show("Are you sure that you want to remove all files?" + nl + nl
                 + "Selected action: " + (moveFilesToRecycleBin ? "Move to recycle bin" : "Remove entirely"),
                 "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-            if (result != DialogResult.Yes) {
+            if (!result.HasFlag(DialogResult.Yes)) {
                 return;
             }
 
@@ -374,7 +325,7 @@ namespace RedundantFileRemover {
                 return;
             }
 
-            ContextMenuStrip cms = new ContextMenuStrip();
+            ContextMenuStrip cms = new();
             cms.Click += OnLogsFilesBoxClicked;
 
             cms.Items.Add("Move to recycle bin");
@@ -396,7 +347,7 @@ namespace RedundantFileRemover {
 
                 try {
                     var toolStripItem = cms?.GetItemAt(mouse.Location);
-                    if (toolStripItem != null) {
+                    if (toolStripItem is not null) {
                         if (toolStripItem.Text == "Open in file explorer") {
                             try {
                                 string si = selectedItem.ToString();
@@ -460,7 +411,7 @@ namespace RedundantFileRemover {
                     LogException(exc.Message + " " + exc.StackTrace);
                 }
 
-                if (cms != null) {
+                if (cms is not null) {
                     cms.Close();
                 }
             }
@@ -469,7 +420,7 @@ namespace RedundantFileRemover {
         }
 
         public static void LogException(string s) {
-            if (!FileDataReader.ProgramSettings.SettingsWindow.ErrorLogging || string.IsNullOrWhiteSpace(s) || ActiveForm == null) {
+            if (!FileDataReader.ProgramSettings.SettingsWindow.ErrorLogging || string.IsNullOrWhiteSpace(s) || ActiveForm is null) {
                 return;
             }
 
@@ -491,7 +442,7 @@ namespace RedundantFileRemover {
             }
 
             var lastForm = Application.OpenForms[Application.OpenForms.Count - 1];
-            if (lastForm != null) {
+            if (lastForm is not null) {
                 for (int i = 0; i < lastForm.Controls.Count; i++) {
                     if (lastForm.Controls[i] is ProgressBar pb) {
                         pb.Invoke((MethodInvoker) delegate {

@@ -24,6 +24,7 @@ namespace RedundantFileRemover {
             moveFilesToBin.Checked = FileDataReader.ProgramSettings.SettingsWindow.MoveFileToRecycleBin;
 
             filterList.Items.Clear();
+
             FileDataReader.ProgramSettings.SettingsWindow.IgnoredDirectories.Where(dir => dir != "")
                 .Where(d => !d.Contains(FileDataReader.ProgramSettings.MainWindow.FolderPath))
                 .Distinct().ToList().ForEach(a => filterList.Items.Add(a));
@@ -100,7 +101,7 @@ namespace RedundantFileRemover {
                 filterList.Items.Clear();
                 FileDataReader.ProgramSettings.SettingsWindow.IgnoredDirectories.Clear();
             } else {
-                List<string> list = new List<string>();
+                List<string> list = new();
                 foreach (string r in filterList.SelectedItems) {
                     list.Add(r);
                 }
@@ -129,7 +130,7 @@ namespace RedundantFileRemover {
                 return;
             }
 
-            ContextMenuStrip cms = new ContextMenuStrip();
+            ContextMenuStrip cms = new();
             cms.Click += OnFilterListClicked;
 
             cms.Items.Add("Remove from list");
@@ -148,7 +149,7 @@ namespace RedundantFileRemover {
                 object selectedItem = filterList.SelectedItem;
 
                 var toolStripItem = cms?.GetItemAt(mouse.Location);
-                if (toolStripItem != null) {
+                if (toolStripItem is not null) {
                     if (toolStripItem.Text == "Open in file explorer") {
                         try {
                             System.Diagnostics.Process.Start("explorer.exe", selectedItem.ToString());
@@ -166,7 +167,7 @@ namespace RedundantFileRemover {
                     removeFilters.Enabled = false;
                 }
 
-                if (cms != null) {
+                if (cms is not null) {
                     cms.Close();
                 }
             }

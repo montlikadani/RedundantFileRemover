@@ -53,6 +53,7 @@ namespace RedundantFileRemover {
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoSize = true;
             this.ClientSize = new System.Drawing.Size(761, 493);
             this.Controls.Add(this.clearErrorLog);
             this.Controls.Add(this.errorLogs);
