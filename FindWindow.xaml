@@ -1,0 +1,15 @@
+﻿<Window x:Class="RedundantFileRemover.FindWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Find key" Height="106" Width="458" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Closing="Window_Closing" ShowInTaskbar="False">
+    <Grid>
+        <Label Content="Find key by name" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="findKey" HorizontalAlignment="Left" Margin="118,18,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="171" TextChanged="findKey_TextChanged" KeyUp="findKey_KeyUp"/>
+        <Button x:Name="findButton" Content="Find" HorizontalAlignment="Left" Margin="294,18,0,0" VerticalAlignment="Top" Width="79" Click="findButton_Click"/>
+        <Button x:Name="closeButton" Content="Close" HorizontalAlignment="Left" Margin="294,43,0,0" VerticalAlignment="Top" Width="79" Click="closeButton_Click"/>
+
+    </Grid>
+</Window>

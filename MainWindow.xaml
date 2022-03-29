@@ -1,0 +1,45 @@
+﻿<Window x:Class="RedundantFileRemover.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Redundant File Remover" Height="499" Width="800" ResizeMode="CanMinimize" Closing="Window_Closing" Closed="Window_Closed" WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Menu HorizontalAlignment = "Center" VerticalAlignment = "Top" Width = "785">
+            <MenuItem Header="File">
+                <MenuItem Header="Open settings file" Click="OpenSettingsFile_Click" />
+                <Separator />
+                <MenuItem Header="Exit" Click="ExitItem_Click" />
+            </MenuItem>
+            <MenuItem x:Name="settingsMenu" Header="Settings" Click="SettingsMenu_Click" Height="21" />
+        </Menu>
+
+        <Label Content="Path to search" HorizontalAlignment="Left" Margin="10,37,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.408,0.423"/>
+        <TextBox x:Name="folderPath" HorizontalAlignment="Left" Margin="10,68,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="631" ToolTip="The path where to search for files"/>
+        <CheckBox x:Name="searchEmptyFolders" Content="Search empty folders" HorizontalAlignment="Left" Margin="10,91,0,0" VerticalAlignment="Top" ToolTip="Search for empty folders too" IsChecked="True"/>
+        <CheckBox x:Name="searchEmptyFiles" Content="Search empty files" HorizontalAlignment="Left" Margin="10,111,0,0" VerticalAlignment="Top" ToolTip="Also search for empty files" IsChecked="True"/>
+        <TextBox x:Name="patternFileTypes" HorizontalAlignment="Left" Margin="150,110,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="176" ToolTip="The file types to search for" Text=".txt, .ini"/>
+        <Button x:Name="browseButton" Content="Change" HorizontalAlignment="Left" Margin="654,68,0,0" VerticalAlignment="Top" Width="106" Height="20" ToolTip="Add directory path where to search for empty files" Click="BrowseButton_Click"/>
+        <ListBox x:Name="logs" Margin="10,175,159,86" MouseUp="Logs_MouseUp" SelectionMode="Extended" SelectionChanged="Logs_SelectionChanged"/>
+        <CheckBox x:Name="autoScroll" Content="Auto-scroll to end" HorizontalAlignment="Left" Margin="503,155,0,0" VerticalAlignment="Top" ToolTip="Automatically scrolls the cursor to the end of box"/>
+        <Button x:Name="searchButton" Content="Search" HorizontalAlignment="Left" Margin="654,175,0,0" VerticalAlignment="Top" Width="106" Height="28" Click="SearchButton_Click" ToolTip="Starts the searching for empty files. This process can take more minutes depending how many files are on your drive."/>
+        <Button x:Name="stopTask" Content="Cancel" HorizontalAlignment="Left" Margin="654,214,0,0" VerticalAlignment="Top" Width="106" Height="28" IsEnabled="False" Click="StopTask_Click" ToolTip="Cancel the current search operation"/>
+        <Button x:Name="removeAll" Content="Remove all" HorizontalAlignment="Left" Margin="654,258,0,0" VerticalAlignment="Top" Width="106" Height="28" Click="RemoveAll_Click" ToolTip="Removes all found empty files" IsEnabled="False"/>
+        <Button x:Name="showErrors" Content="Show errors" HorizontalAlignment="Left" Margin="654,383,0,0" VerticalAlignment="Top" Width="106" Height="28" Click="ShowErrors_Click" ToolTip="Show errors that occurred during finding empty files"/>
+        <Label x:Name="removedAmount" Content="" HorizontalAlignment="Left" Margin="10,149,0,0" VerticalAlignment="Top" Width="488"/>
+        <TextBox x:Name="removedFilesList" HorizontalAlignment="Left" Margin="10,416,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="631" Height="57" IsReadOnly="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" AllowDrop="True" Visibility="Hidden"/>
+        <Button x:Name="clearButton" Content="Clear" HorizontalAlignment="Left" Margin="654,301,0,0" VerticalAlignment="Top" Width="106" Height="28" ToolTip="Clear all the logs" Click="ClearButton_Click" IsEnabled="False"/>
+        <Button x:Name="findKeyButton" Content="Find key" HorizontalAlignment="Left" Margin="654,343,0,0" Height="28" Width="106" VerticalAlignment="Top" IsEnabled="False" ToolTip="Finds a specified file in the list box" Click="findKeyButton_Click"/>
+
+        <Label x:Name="statusLabel" HorizontalAlignment="Left" Margin="10,416,0,0" VerticalAlignment="Top" Visibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Disabled" MaxWidth="610" />
+        <ProgressBar x:Name="progressBarProcess" Margin="311,141,460,-288" RenderTransformOrigin="0.5,0.5" Visibility="Hidden" Orientation="Vertical">
+            <ProgressBar.RenderTransform>
+                <TransformGroup>
+                    <RotateTransform Angle="90"/>
+                </TransformGroup>
+            </ProgressBar.RenderTransform>
+        </ProgressBar>
+        <CheckBox x:Name="allFileType" Content="Look through all file types" HorizontalAlignment="Left" Margin="331,111,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.448,0.201" ToolTip="Scans all existing file types (may take more time)"/>
+    </Grid>
+</Window>

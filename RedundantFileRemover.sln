@@ -1,11 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30804.86
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32210.238
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedundantFileRemover", "RedundantFileRemover\RedundantFileRemover.csproj", "{C0BB8E3A-6E15-4702-8F9E-C086BF40EFB4}"
-EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "RFR-Setup", "RFR-Setup\RFR-Setup.vdproj", "{03712FAF-8FC0-4094-807D-8E7320556CD8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedundantFileRemover", "RedundantFileRemover.csproj", "{80375AD6-792F-4E09-A3C6-2761357DB10C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,17 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C0BB8E3A-6E15-4702-8F9E-C086BF40EFB4}.Debug|Any CPU.ActiveCfg = Release|Any CPU
-		{C0BB8E3A-6E15-4702-8F9E-C086BF40EFB4}.Debug|Any CPU.Build.0 = Release|Any CPU
-		{C0BB8E3A-6E15-4702-8F9E-C086BF40EFB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C0BB8E3A-6E15-4702-8F9E-C086BF40EFB4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{03712FAF-8FC0-4094-807D-8E7320556CD8}.Debug|Any CPU.ActiveCfg = Debug
-		{03712FAF-8FC0-4094-807D-8E7320556CD8}.Release|Any CPU.ActiveCfg = Debug
+		{80375AD6-792F-4E09-A3C6-2761357DB10C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80375AD6-792F-4E09-A3C6-2761357DB10C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80375AD6-792F-4E09-A3C6-2761357DB10C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80375AD6-792F-4E09-A3C6-2761357DB10C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {84470E0E-7445-475C-A674-C70E0A9A2EA4}
+		SolutionGuid = {7493EF39-EB10-4752-BEA8-B5918FBAAEC8}
 	EndGlobalSection
 EndGlobal

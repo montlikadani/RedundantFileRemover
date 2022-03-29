@@ -1,0 +1,25 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:System="clr-namespace:System;assembly=mscorlib" xmlns:IO="clr-namespace:System.IO;assembly=mscorlib" x:Class="RedundantFileRemover.FileAttributesTab"
+        mc:Ignorable="d"
+        Title="Settings - File attributes" Height="387" Width="741" ResizeMode="CanMinimize" ShowInTaskbar="False" WindowStartupLocation="CenterScreen" Closing="Window_Closing">
+    <Grid>
+        <Menu HorizontalAlignment = "Center" VerticalAlignment = "Top" Width="725">
+            <MenuItem Header="General" Click="GeneralTab_Click" />
+            <MenuItem Header="File attributes" Background="White" IsEnabled="False" Height="21" />
+        </Menu>
+
+        <Label Content="Files with these attributes will be ignored" HorizontalAlignment="Left" Margin="10,26,0,0" VerticalAlignment="Top"/>
+        <ListBox x:Name="ignoredFileAttributes" Margin="10,57,400,198" MouseUp="ignoredFileAttributes_MouseUp"/>
+        <ComboBox x:Name="attributeList" HorizontalAlignment="Left" Margin="346,57,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="attributeList_SelectionChanged"/>
+        <Button x:Name="removeButton" Content="Remove" HorizontalAlignment="Left" Margin="346,84,0,0" VerticalAlignment="Top" Width="120" IsEnabled="False" Click="removeButton_Click"/>
+
+        <Label Content="Directories with these attributes will be ignored" HorizontalAlignment="Left" Margin="10,186,0,0" VerticalAlignment="Top"/>
+        <ListBox x:Name="ignoredDirectoryAttributes" Margin="10,217,400,38" MouseUp="ignoredDirectoryAttributes_MouseUp"/>
+        <ComboBox x:Name="directoryAttributeList" HorizontalAlignment="Left" Margin="346,217,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="directoryAttributeList_SelectionChanged"/>
+        <Button x:Name="directoryRemoveButton" Content="Remove" HorizontalAlignment="Left" Margin="346,244,0,0" VerticalAlignment="Top" Width="120" IsEnabled="False" Click="directoryRemoveButton_Click"/>
+    </Grid>
+</Window>

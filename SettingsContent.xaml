@@ -1,0 +1,26 @@
+﻿<Window x:Class="RedundantFileRemover.SettingsContent"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Settings" Height="387" Width="741" Closing="Settings_Closing" Closed="Settings_Closed" Loaded="Settings_Load" MouseUp="WindowMouseUp" ResizeMode="CanMinimize" ShowInTaskbar="False" WindowStartupLocation="CenterScreen">
+    <Grid Margin="0,0,-9,-6">
+        <Menu HorizontalAlignment = "Left" VerticalAlignment = "Top" Width="826">
+            <MenuItem Header="General" Background="White" IsEnabled="False" />
+            <MenuItem Header="File attributes" Click="FileAttributesTab_Click" Height="21" />
+        </Menu>
+
+        <CheckBox x:Name="searchInSubDirs" x:FieldModifier="public" Content="Search in sub-directories" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top" ToolTip="Also search in sub-directories (requires more time)" IsChecked="True"/>
+        <Label Content="Error logging" HorizontalAlignment="Left" Margin="13,58,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="errorLogging" x:FieldModifier="public" Content="Error logging enabled" HorizontalAlignment="Left" Margin="25,84,0,0" VerticalAlignment="Top" IsChecked="True" ToolTip="Extra debug informations"/>
+        <CheckBox x:Name="alwaysClearLogs" x:FieldModifier="public" Content="Always clear logs before search operation" HorizontalAlignment="Left" Margin="25,104,0,0" VerticalAlignment="Top" ToolTip="When pressing the search button the logs will be cleared out"/>
+        <CheckBox x:Name="moveFilesToBin" x:FieldModifier="public" Content="Move files to recycle bin instead of deleting them permanently" HorizontalAlignment="Left" Margin="10,124,0,0" VerticalAlignment="Top"/>
+        <ListBox x:Name="filterList" Margin="10,227,127,30" SelectionMode="Extended" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto" SelectionChanged="FilterList_selected" MouseUp="FilterList_MouseUp"/>
+        <Button Content="Add" HorizontalAlignment="Left" Margin="614,227,0,0" VerticalAlignment="Top" Width="104" ToolTip="Add a path where the search operation will not searches" Click="BrowseFiltersButton_Click"/>
+        <Button x:Name="removeFilters" Content="Remove all" HorizontalAlignment="Left" Margin="614,260,0,0" VerticalAlignment="Top" Width="104" ToolTip="Removes the selected or all added exclusions" Click="RemoveFilters_Click" IsEnabled="False"/>
+        <Label x:Name="error" HorizontalAlignment="Left" Margin="10,420,0,0" VerticalAlignment="Top" Width="699" Height="26" Foreground="Red"/>
+        <Label Content="Excluded directories in which the search operation is ignored" HorizontalAlignment="Left" Margin="13,196,0,0" VerticalAlignment="Top"/>
+
+    </Grid>
+</Window>
